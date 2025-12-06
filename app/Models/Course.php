@@ -2,32 +2,44 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Course extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
+        'instructor_id',
         'title',
         'description',
+        'what_you_will_learn',
+        'skills_gain',
+        'assessment_info',
+        'duration',
         'price',
-        'image',
-        'slug',
-        'is_active',
+        'level',
+        'is_archived',
     ];
 
-    protected $casts = [
-        'price' => 'decimal:2',
-        'is_active' => 'boolean',
-    ];
+    // Instructor relationship
+    public function instructor()
+    {
+        return $this->belongsTo(User::class, 'instructor_id');
+    }
 
-    /**
-     * Get the enrollments for the course.
-     */
-    public function enrollments(): HasMany
+    // Course has many lessons
+    public function lessons()
+    {
+        return $this->hasMany(Lesson::class);
+    }
+
+    // Course has many enrollments
+    public function enrollments()
     {
         return $this->hasMany(Enrollment::class);
     }
+
 
     /**
      * Get the payments for the course.

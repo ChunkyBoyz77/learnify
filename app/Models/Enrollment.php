@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Enrollment extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'course_id',
@@ -21,20 +22,14 @@ class Enrollment extends Model
         'completed_at' => 'datetime',
     ];
 
-    /**
-     * Get the user that owns the enrollment.
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    /**
-     * Get the course that the enrollment belongs to.
-     */
-    public function course(): BelongsTo
+    public function course()
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function student()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     /**

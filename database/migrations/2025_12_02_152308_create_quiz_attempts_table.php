@@ -8,19 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('quiz_questions', function (Blueprint $table) {
+        Schema::create('quiz_attempts', function (Blueprint $table) {
             $table->id();
+
+            $table->unsignedBigInteger('user_id'); 
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
             $table->unsignedBigInteger('quiz_id');
             $table->foreign('quiz_id')->references('id')->on('quizzes')->onDelete('cascade');
 
-            $table->text('question_text');
+            // JSON: { "1":2, "2":1 }
+            $table->json('answers');
 
-            // JSON: ["option A", "option B", "option C"]
-            $table->json('options');
-
-            // Index (0,1,2...) of correct option
-            $table->integer('correct_option_index');
+            $table->integer('score')->default(0);
 
             $table->timestamps();
         });
@@ -28,6 +28,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('quiz_questions');
+        Schema::dropIfExists('quiz_attempts');
     }
 };

@@ -6,26 +6,28 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('courses', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('instructor_id')->constrained('users')->onDelete('cascade');
+
             $table->string('title');
             $table->text('description')->nullable();
-            $table->decimal('price', 10, 2);
-            $table->string('image')->nullable();
-            $table->string('slug')->unique();
-            $table->boolean('is_active')->default(true);
+            $table->text('what_you_will_learn')->nullable();
+            $table->text('skills_gain')->nullable();
+            $table->text('assessment_info')->nullable();
+
+            $table->string('duration')->nullable();
+            $table->decimal('price', 8, 2)->default(0);
+            $table->string('level')->nullable();
+
+            $table->boolean('is_archived')->default(false);
+
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('courses');

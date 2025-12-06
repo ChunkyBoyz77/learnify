@@ -46,6 +46,14 @@ class User extends Authenticatable
         ];
     }
 
+/**
+     * Courses created by instructor.
+     */
+    public function courses()
+    {
+        return $this->hasMany(\App\Models\Course::class, 'instructor_id');
+    }
+
     /**
      * Get the enrollments for the user.
      */
