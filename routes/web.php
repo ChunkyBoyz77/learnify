@@ -15,6 +15,15 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Role-based dashboard routes
+Route::get('/student/dashboard', function () {
+    return view('student-dashboard');
+})->middleware(['auth', 'verified'])->name('student.dashboard');
+
+Route::get('/instructor/dashboard', function () {
+    return view('instructor-dashboard');
+})->middleware(['auth', 'verified'])->name('instructor.dashboard');
+
 // Public course routes
 Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
 Route::get('/courses/{course}', [CourseController::class, 'show'])->name('courses.show');

@@ -5,7 +5,7 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 group">
+                    <a href="{{ Auth::check() && Auth::user()->role === 'instructor' ? route('instructor.dashboard') : (Auth::check() && Auth::user()->role === 'student' ? route('student.dashboard') : route('dashboard')) }}" class="flex items-center space-x-3 group">
                         <x-application-logo class="block h-12 w-auto transition-transform group-hover:scale-105" />
                         <span class="hidden md:block text-xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 dark:from-teal-400 dark:to-cyan-400 bg-clip-text text-transparent">
                             LEARNIFY
@@ -15,7 +15,11 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-2 sm:-my-px sm:ms-10 sm:flex items-center">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="px-4 py-2 rounded-lg transition-all hover:bg-teal-100 dark:hover:bg-gray-700">
+                    @php
+                        $dashboardRoute = Auth::check() && Auth::user()->role === 'instructor' ? route('instructor.dashboard') : (Auth::check() && Auth::user()->role === 'student' ? route('student.dashboard') : route('dashboard'));
+                        $dashboardActive = request()->routeIs('dashboard') || request()->routeIs('student.dashboard') || request()->routeIs('instructor.dashboard');
+                    @endphp
+                    <x-nav-link :href="$dashboardRoute" :active="$dashboardActive" class="px-4 py-2 rounded-lg transition-all hover:bg-teal-100 dark:hover:bg-gray-700">
                         <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                         </svg>
@@ -93,7 +97,11 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+            @php
+                $dashboardRoute = Auth::check() && Auth::user()->role === 'instructor' ? route('instructor.dashboard') : (Auth::check() && Auth::user()->role === 'student' ? route('student.dashboard') : route('dashboard'));
+                $dashboardActive = request()->routeIs('dashboard') || request()->routeIs('student.dashboard') || request()->routeIs('instructor.dashboard');
+            @endphp
+            <x-responsive-nav-link :href="$dashboardRoute" :active="$dashboardActive">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('courses.index')" :active="request()->routeIs('courses.*')">
