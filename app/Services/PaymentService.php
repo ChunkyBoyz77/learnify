@@ -295,15 +295,38 @@ class PaymentService
      */
     protected function handleCheckoutSuccess(Payment $payment, array $session): void
     {
+        $paymentDetails = array_merge($payment->payment_details ?? [], [
+            'stripe_checkout_session_id' => $session['id'],
+            'stripe_payment_intent_id' => $session['payment_intent'] ?? null,
+            'stripe_customer_id' => $session['customer'] ?? null,
+            'payment_status' => $session['payment_status'],
+        ]);
+
+        // Try to get charge ID from payment intent for easier refunds later
+        $paymentIntentId = $session['payment_intent'] ?? null;
+        if ($paymentIntentId) {
+            try {
+                $paymentIntent = PaymentIntent::retrieve($paymentIntentId, [
+                    'expand' => ['charges.data.balance_transaction'],
+                ]);
+                
+                if ($paymentIntent->charges && count($paymentIntent->charges->data) > 0) {
+                    $paymentDetails['stripe_charge_id'] = $paymentIntent->charges->data[0]->id;
+                }
+            } catch (ApiErrorException $e) {
+                // Log but don't fail - we can retrieve it later during refund
+                \Log::warning('Could not retrieve charge ID during checkout success', [
+                    'payment_id' => $payment->id,
+                    'payment_intent_id' => $paymentIntentId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         $payment->update([
             'status' => 'completed',
             'paid_at' => now(),
-            'payment_details' => array_merge($payment->payment_details ?? [], [
-                'stripe_checkout_session_id' => $session['id'],
-                'stripe_payment_intent_id' => $session['payment_intent'] ?? null,
-                'stripe_customer_id' => $session['customer'] ?? null,
-                'payment_status' => $session['payment_status'],
-            ]),
+            'payment_details' => $paymentDetails,
         ]);
 
         // Create enrollment after successful payment
@@ -532,23 +555,223 @@ class PaymentService
     public function refundPayment(Payment $payment, ?float $amount = null): bool
     {
         if ($payment->status !== 'completed') {
+            \Log::warning('Cannot refund payment: Payment status is not completed', [
+                'payment_id' => $payment->id,
+                'status' => $payment->status,
+            ]);
             return false;
         }
 
-        $paymentIntentId = $payment->payment_details['stripe_payment_intent_id'] ?? null;
-        $chargeId = $payment->payment_details['stripe_charge_id'] ?? null;
+        $paymentDetails = $payment->payment_details ?? [];
+        $chargeId = $paymentDetails['stripe_charge_id'] ?? null;
+        $paymentIntentId = $paymentDetails['stripe_payment_intent_id'] ?? null;
+        $sessionId = $paymentDetails['stripe_checkout_session_id'] ?? null;
 
-        if (!$chargeId && $paymentIntentId) {
+        // Check if payment has any Stripe identifiers at all
+        // If no Stripe identifiers, this payment cannot be refunded via Stripe
+        if (!$chargeId && !$paymentIntentId && !$sessionId) {
+            \Log::warning('Cannot refund via Stripe: Payment has no Stripe identifiers', [
+                'payment_id' => $payment->id,
+                'transaction_id' => $payment->transaction_id,
+                'payment_details' => $paymentDetails,
+            ]);
+            return false;
+        }
+
+        // If we don't have charge ID, try to get it from PaymentIntent or Checkout Session
+        if (!$chargeId) {
             try {
-                $paymentIntent = PaymentIntent::retrieve($paymentIntentId);
-                $chargeId = $paymentIntent->charges->data[0]->id ?? null;
-            } catch (ApiErrorException $e) {
-                \Log::error('Stripe refund error: Could not retrieve charge', ['error' => $e->getMessage()]);
+                // First, try to get PaymentIntent ID from Checkout Session if available
+                if ($sessionId && !$paymentIntentId) {
+                    try {
+                        $session = Session::retrieve($sessionId);
+                        $paymentIntentId = $session->payment_intent ?? null;
+                        
+                        // Update payment details with payment intent ID if we got it
+                        if ($paymentIntentId) {
+                            $payment->update([
+                                'payment_details' => array_merge($paymentDetails, [
+                                    'stripe_payment_intent_id' => $paymentIntentId,
+                                ]),
+                            ]);
+                            $paymentDetails = $payment->refresh()->payment_details ?? [];
+                        }
+                    } catch (ApiErrorException $e) {
+                        \Log::error('Stripe refund error: Could not retrieve checkout session', [
+                            'payment_id' => $payment->id,
+                            'session_id' => $sessionId,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+
+                // Now try to get charge ID from PaymentIntent
+                if ($paymentIntentId) {
+                    try {
+                        // Retrieve payment intent with expanded charges
+                        $paymentIntent = PaymentIntent::retrieve($paymentIntentId, [
+                            'expand' => ['charges.data.balance_transaction', 'latest_charge'],
+                        ]);
+                        
+                        // Check payment intent status
+                        $paymentIntentStatus = $paymentIntent->status ?? 'unknown';
+                        
+                        // If payment intent is not succeeded, we can't refund via Stripe
+                        if ($paymentIntentStatus !== 'succeeded') {
+                            \Log::error('Stripe refund: Payment intent status is not succeeded', [
+                                'payment_id' => $payment->id,
+                                'payment_intent_id' => $paymentIntentId,
+                                'payment_intent_status' => $paymentIntentStatus,
+                                'payment_status' => $payment->status,
+                            ]);
+                            return false;
+                        }
+                        
+                        \Log::info('Retrieved payment intent for refund', [
+                            'payment_id' => $payment->id,
+                            'payment_intent_id' => $paymentIntentId,
+                            'payment_intent_status' => $paymentIntentStatus,
+                            'has_charges' => isset($paymentIntent->charges),
+                            'charges_count' => isset($paymentIntent->charges) ? count($paymentIntent->charges->data ?? []) : 0,
+                            'has_latest_charge' => isset($paymentIntent->latest_charge),
+                        ]);
+                        
+                        // Method 1: Try to get charge ID from latest_charge (most reliable for newer Stripe API)
+                        if (!empty($paymentIntent->latest_charge)) {
+                            if (is_string($paymentIntent->latest_charge)) {
+                                $chargeId = $paymentIntent->latest_charge;
+                            } elseif (is_object($paymentIntent->latest_charge)) {
+                                $chargeId = $paymentIntent->latest_charge->id ?? null;
+                            }
+                            
+                            if ($chargeId) {
+                                \Log::info('Found charge ID from latest_charge', [
+                                    'payment_id' => $payment->id,
+                                    'charge_id' => $chargeId,
+                                ]);
+                            }
+                        }
+                        
+                        // Method 2: Try to get charge ID from charges list
+                        if (!$chargeId && isset($paymentIntent->charges) && count($paymentIntent->charges->data ?? []) > 0) {
+                            $chargeId = $paymentIntent->charges->data[0]->id;
+                            \Log::info('Found charge ID from charges list', [
+                                'payment_id' => $payment->id,
+                                'charge_id' => $chargeId,
+                            ]);
+                        }
+                        
+                        // Method 3: Try to list charges separately if we still don't have charge ID
+                        if (!$chargeId) {
+                            try {
+                                $charges = \Stripe\Charge::all([
+                                    'payment_intent' => $paymentIntentId,
+                                    'limit' => 1,
+                                ]);
+                                
+                                if (count($charges->data) > 0) {
+                                    $chargeId = $charges->data[0]->id;
+                                    \Log::info('Found charge ID by listing charges', [
+                                        'payment_id' => $payment->id,
+                                        'charge_id' => $chargeId,
+                                    ]);
+                                }
+                            } catch (\Exception $e) {
+                                \Log::warning('Could not list charges separately', [
+                                    'payment_id' => $payment->id,
+                                    'error' => $e->getMessage(),
+                                ]);
+                            }
+                        }
+                        
+                        // Update payment details with charge ID if we found it
+                        if ($chargeId) {
+                            $payment->update([
+                                'payment_details' => array_merge($paymentDetails, [
+                                    'stripe_charge_id' => $chargeId,
+                                ]),
+                            ]);
+                        } else {
+                            // Log detailed information about why we couldn't get charge ID
+                            \Log::error('Stripe refund: Could not retrieve charge ID from payment intent', [
+                                'payment_id' => $payment->id,
+                                'payment_intent_id' => $paymentIntentId,
+                                'payment_intent_status' => $paymentIntentStatus,
+                                'has_latest_charge' => isset($paymentIntent->latest_charge),
+                                'latest_charge_value' => is_string($paymentIntent->latest_charge ?? null) 
+                                    ? $paymentIntent->latest_charge 
+                                    : (isset($paymentIntent->latest_charge) ? 'object' : 'null'),
+                                'has_charges' => isset($paymentIntent->charges),
+                                'charges_count' => isset($paymentIntent->charges) ? count($paymentIntent->charges->data ?? []) : 0,
+                            ]);
+                            return false;
+                        }
+                    } catch (ApiErrorException $e) {
+                        \Log::error('Stripe refund error: Could not retrieve payment intent', [
+                            'payment_id' => $payment->id,
+                            'payment_intent_id' => $paymentIntentId,
+                            'error' => $e->getMessage(),
+                            'error_code' => $e->getStripeCode() ?? 'unknown',
+                            'error_type' => get_class($e),
+                        ]);
+                        return false;
+                    }
+                }
+                
+                // If we still don't have payment intent ID, try to get it from session
+                if (!$paymentIntentId && $sessionId) {
+                    try {
+                        $session = Session::retrieve($sessionId);
+                        $paymentIntentId = is_string($session->payment_intent) 
+                            ? $session->payment_intent 
+                            : ($session->payment_intent->id ?? null);
+                        
+                        if ($paymentIntentId) {
+                            // Retry getting charge ID with the payment intent from session
+                            $paymentIntent = PaymentIntent::retrieve($paymentIntentId, [
+                                'expand' => ['charges.data.balance_transaction'],
+                            ]);
+                            
+                            if ($paymentIntent->charges && count($paymentIntent->charges->data) > 0) {
+                                $chargeId = $paymentIntent->charges->data[0]->id;
+                                
+                                // Update payment details
+                                $payment->update([
+                                    'payment_details' => array_merge($paymentDetails, [
+                                        'stripe_payment_intent_id' => $paymentIntentId,
+                                        'stripe_charge_id' => $chargeId,
+                                    ]),
+                                ]);
+                            }
+                        }
+                    } catch (ApiErrorException $e) {
+                        \Log::error('Stripe refund error: Could not retrieve checkout session', [
+                            'payment_id' => $payment->id,
+                            'session_id' => $sessionId,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            } catch (\Exception $e) {
+                \Log::error('Stripe refund error: Unexpected error retrieving charge ID', [
+                    'payment_id' => $payment->id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
                 return false;
             }
         }
 
         if (!$chargeId) {
+            \Log::error('Stripe refund error: Could not find charge ID', [
+                'payment_id' => $payment->id,
+                'transaction_id' => $payment->transaction_id,
+                'payment_status' => $payment->status,
+                'has_session_id' => !empty($sessionId),
+                'has_payment_intent_id' => !empty($paymentIntentId),
+                'has_charge_id' => !empty($paymentDetails['stripe_charge_id']),
+                'payment_details_keys' => array_keys($paymentDetails),
+            ]);
             return false;
         }
 
@@ -560,19 +783,26 @@ class PaymentService
                 'amount' => $refundAmount,
             ]);
 
+            $refundAmount = $refund->amount / 100;
+            $currency = config('services.stripe.currency', 'myr');
+            $currencySymbol = strtoupper($currency) === 'MYR' ? 'RM' : '$';
+            
             $payment->update([
                 'status' => 'refunded',
-                'notes' => ($payment->notes ?? '') . "\nRefunded: $" . number_format($refund->amount / 100, 2) . " (Stripe Refund ID: {$refund->id})",
+                'notes' => ($payment->notes ?? '') . "\n" . now()->format('Y-m-d H:i:s') . " - Refunded via Stripe: {$currencySymbol}" . number_format($refundAmount, 2) . " (Stripe Refund ID: {$refund->id})",
                 'payment_details' => array_merge($payment->payment_details ?? [], [
                     'stripe_refund_id' => $refund->id,
-                    'refund_amount' => $refund->amount / 100,
+                    'refund_amount' => $refundAmount,
+                    'refunded_at' => now()->toIso8601String(),
+                    'refund_status' => 'succeeded',
                 ]),
             ]);
 
-            // Optionally cancel enrollment
+            // Cancel enrollment when payment is refunded
             if ($payment->enrollment) {
                 $payment->enrollment->update([
                     'status' => 'cancelled',
+                    'completed_at' => null, // Clear completion date if exists
                 ]);
             }
 

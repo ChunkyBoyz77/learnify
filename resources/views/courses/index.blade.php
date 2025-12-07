@@ -52,8 +52,11 @@
                                 <div class="flex items-center justify-between gap-3">
                                     @auth
                                         @php
+                                            // Only show as enrolled if enrollment status is 'active' or 'completed'
+                                            // Cancelled enrollments (after refund) should not show as enrolled
                                             $isEnrolled = auth()->user()->enrollments()
                                                 ->where('course_id', $course->id)
+                                                ->whereIn('status', ['active', 'completed'])
                                                 ->exists();
                                         @endphp
                                         @if($isEnrolled)

@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Payment extends Model
 {
+    use SoftDeletes;
     protected $fillable = [
         'user_id',
         'enrollment_id',
@@ -57,5 +60,13 @@ class Payment extends Model
     public function paymentMethod(): BelongsTo
     {
         return $this->belongsTo(PaymentMethod::class);
+    }
+
+    /**
+     * Get the refund requests for the payment.
+     */
+    public function refundRequests(): HasMany
+    {
+        return $this->hasMany(RefundRequest::class);
     }
 }

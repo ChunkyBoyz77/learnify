@@ -35,6 +35,24 @@ Route::middleware(['auth', 'instructor'])->group(function () {
     Route::put('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
     Route::patch('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
     Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
+
+    // Instructor payment routes
+    Route::get('/instructor/payments', [PaymentController::class, 'instructorPayments'])->name('instructor.payments.index');
+    Route::get('/instructor/courses/{course}/payments', [PaymentController::class, 'instructorCoursePayments'])->name('instructor.payments.course');
+    
+    // Payment CRUD routes (instructor only)
+    Route::get('/payments/create', [PaymentController::class, 'create'])->name('payments.create');
+    Route::post('/payments', [PaymentController::class, 'store'])->name('payments.store');
+    Route::get('/payments/{payment}/edit', [PaymentController::class, 'edit'])->name('payments.edit');
+    Route::put('/payments/{payment}', [PaymentController::class, 'update'])->name('payments.update');
+    Route::patch('/payments/{payment}', [PaymentController::class, 'update'])->name('payments.update');
+    Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
+
+    // Refund request management routes (instructor only)
+    Route::get('/instructor/refund-requests', [PaymentController::class, 'instructorRefundRequests'])->name('payments.refund-requests.index');
+    Route::get('/instructor/refund-requests/{refundRequest}', [PaymentController::class, 'showRefundRequest'])->name('payments.refund-requests.show');
+    Route::post('/instructor/refund-requests/{refundRequest}/approve', [PaymentController::class, 'approveRefund'])->name('payments.refund-requests.approve');
+    Route::post('/instructor/refund-requests/{refundRequest}/reject', [PaymentController::class, 'rejectRefund'])->name('payments.refund-requests.reject');
 });
 
 // This must come last to avoid catching /courses/create as a course ID
@@ -57,6 +75,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/payments/{payment}/success', [PaymentController::class, 'success'])->name('payments.success');
     Route::get('/payments/{payment}/failure', [PaymentController::class, 'failure'])->name('payments.failure');
     Route::get('/payments/{payment}/pending', [PaymentController::class, 'pending'])->name('payments.pending');
+
+    // Refund request routes (students)
+    Route::get('/payments/{payment}/request-refund', [PaymentController::class, 'requestRefund'])->name('payments.refund-request.create');
+    Route::post('/payments/{payment}/refund-request', [PaymentController::class, 'storeRefundRequest'])->name('payments.refund-request.store');
 
     // Enrollment routes
     Route::get('/enrollments', [EnrollmentController::class, 'index'])->name('enrollments.index');

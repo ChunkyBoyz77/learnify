@@ -110,9 +110,11 @@ class CourseController extends Controller
         $isEnrolled = false;
         
         if (auth()->check()) {
+            // Only show as enrolled if enrollment status is 'active' or 'completed'
+            // Cancelled enrollments (after refund) should not show as enrolled
             $isEnrolled = auth()->user()->enrollments()
                 ->where('course_id', $course->id)
-                ->where('status', 'active')
+                ->whereIn('status', ['active', 'completed'])
                 ->exists();
         }
 

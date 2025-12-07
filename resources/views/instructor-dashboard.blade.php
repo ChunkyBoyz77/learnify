@@ -41,6 +41,12 @@
                                     </svg>
                                     My Courses
                                 </a>
+                                <a href="{{ route('instructor.payments.index') }}" class="inline-flex items-center px-6 py-3 bg-white dark:bg-gray-700 text-teal-600 dark:text-teal-400 font-semibold rounded-lg border-2 border-teal-200 dark:border-teal-700 hover:border-teal-300 dark:hover:border-teal-600 transition-all duration-200">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    View Payments
+                                </a>
                             </div>
                         </div>
                         <div class="hidden md:block">
@@ -101,7 +107,22 @@
                     </div>
                 </div>
                 
-               
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-teal-100 dark:border-gray-700 hover:shadow-xl transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Total Revenue</p>
+                            @php
+                                $totalRevenue = \App\Models\Payment::whereIn('course_id', Auth::user()->courses()->pluck('id'))->where('status', 'completed')->sum('amount');
+                            @endphp
+                            <p class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-2">RM{{ number_format($totalRevenue, 2) }}</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-teal-100 dark:border-gray-700 hover:shadow-xl transition-shadow">
                     <div class="flex items-center justify-between">
@@ -170,6 +191,12 @@
                                     </a>
                                     <a href="{{ route('courses.edit', $course) }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
                                         Edit
+                                    </a>
+                                    <a href="{{ route('instructor.payments.course', $course) }}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors" title="View Payments">
+                                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        Payments
                                     </a>
                                 </div>
                             </div>

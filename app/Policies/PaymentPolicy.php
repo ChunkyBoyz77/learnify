@@ -13,7 +13,8 @@ class PaymentPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        // Only instructors can view all payments (for their courses)
+        return $user->role === 'instructor';
     }
 
     /**
@@ -21,7 +22,17 @@ class PaymentPolicy
      */
     public function view(User $user, Payment $payment): bool
     {
-        return $user->id === $payment->user_id;
+        // Student can view their own payments
+        if ($user->id === $payment->user_id) {
+            return true;
+        }
+
+        // Instructor can view payments for their courses
+        if ($user->role === 'instructor' && $payment->course && $payment->course->instructor_id === $user->id) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -29,7 +40,8 @@ class PaymentPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        // Only instructors can manually create payments
+        return $user->role === 'instructor';
     }
 
     /**
@@ -37,6 +49,13 @@ class PaymentPolicy
      */
     public function update(User $user, Payment $payment): bool
     {
+        // Only instructors can update payments for their courses
+        if ($user->role === 'instructor' && $payment->course && $payment->course->instructor_id === $user->id) {
+            // Only allow status changes and notes updates for data integrity
+            // Critical fields (user_id, course_id, amount, transaction_id) are immutable
+            return true;
+        }
+
         return false;
     }
 
@@ -45,6 +64,13 @@ class PaymentPolicy
      */
     public function delete(User $user, Payment $payment): bool
     {
+        // Only instructors can delete (void) payments for their courses
+        // Cannot delete completed payments (use refund instead)
+        if ($user->role === 'instructor' && $payment->course && $payment->course->instructor_id === $user->id) {
+            // Only allow soft delete for pending/failed/cancelled payments
+            return in_array($payment->status, ['pending', 'failed', 'cancelled']);
+        }
+
         return false;
     }
 
