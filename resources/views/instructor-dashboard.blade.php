@@ -29,7 +29,7 @@
                                 Create and manage your courses, track student progress, and build your teaching community.
                             </p>
                             <div class="flex flex-wrap gap-3">
-                                <a href="{{ route('courses.index') }}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
+                                <a href="{{ route('courses.create') }}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                                     </svg>
@@ -170,26 +170,26 @@
                                     <div>
                                         <h4 class="font-semibold text-gray-900 dark:text-gray-100">{{ $course->title }}</h4>
                                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                                            Status: 
-                                            <span class="capitalize">
-                                                @if($course->is_published)
-                                                    <span class="text-green-600 dark:text-green-400">Published</span>
-                                                @else
-                                                    <span class="text-yellow-600 dark:text-yellow-400">Draft</span>
-                                                @endif
-                                            </span>
-                                            • {{ $course->enrollment_count ?? 0 }} enrollments
+                                            {{ $course->enrollments()->count() }} enrollments
+                                            @if($course->is_archived)
+                                                • <span class="text-gray-500 dark:text-gray-400">Archived</span>
+                                            @endif
                                         </p>
                                     </div>
                                 </div>
-                                <a href="{{ route('courses.show', $course) }}" class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors">
-                                    View
-                                </a>
+                                <div class="flex gap-2">
+                                    <a href="{{ route('courses.show', $course) }}" class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors">
+                                        View
+                                    </a>
+                                    <a href="{{ route('courses.edit', $course) }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                                        Edit
+                                    </a>
+                                </div>
                             </div>
                         @endforeach
                     </div>
                 @else
-                    <p class="text-gray-600 dark:text-gray-400 text-center py-8">No courses yet. <a href="{{ route('courses.index') }}" class="text-teal-600 hover:text-teal-700 font-semibold">Create your first course</a> to get started!</p>
+                    <p class="text-gray-600 dark:text-gray-400 text-center py-8">No courses yet. <a href="{{ route('courses.create') }}" class="text-teal-600 hover:text-teal-700 font-semibold">Create your first course</a> to get started!</p>
                 @endif
             </div>
         </div>

@@ -26,6 +26,18 @@ Route::get('/instructor/dashboard', function () {
 
 // Public course routes
 Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
+
+// Instructor-only course CRUD routes (must come before /courses/{course} route)
+Route::middleware(['auth', 'instructor'])->group(function () {
+    Route::get('/courses/create', [CourseController::class, 'create'])->name('courses.create');
+    Route::post('/courses', [CourseController::class, 'store'])->name('courses.store');
+    Route::get('/courses/{course}/edit', [CourseController::class, 'edit'])->name('courses.edit');
+    Route::put('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
+    Route::patch('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
+    Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
+});
+
+// This must come last to avoid catching /courses/create as a course ID
 Route::get('/courses/{course}', [CourseController::class, 'show'])->name('courses.show');
 
 // Stripe webhook (must be outside auth middleware and CSRF protection)

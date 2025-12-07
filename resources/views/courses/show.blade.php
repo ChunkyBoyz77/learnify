@@ -7,6 +7,13 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <!-- Success Message -->
+            @if (session('success'))
+                <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                    <span class="block sm:inline">{{ session('success') }}</span>
+                </div>
+            @endif
+
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -34,23 +41,44 @@
                                 </p>
                             </div>
                             
-                            <!-- Enrollment Button Section -->
-                            <div class="mt-6">
+                            <!-- Enrollment/Instructor Actions Section -->
+                            <div class="mt-6 space-y-4">
                                 @auth
-                                    @if($isEnrolled)
-                                        <div class="bg-green-100 dark:bg-green-900 border border-green-400 text-green-700 dark:text-green-300 px-4 py-3 rounded mb-4">
-                                            <p class="font-semibold">✓ You are enrolled in this course!</p>
+                                    @if(auth()->user()->role === 'instructor' && auth()->id() === $course->instructor_id)
+                                        <!-- Instructor Actions -->
+                                        <div class="bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 px-4 py-3 rounded mb-4">
+                                            <p class="font-semibold text-teal-800 dark:text-teal-300 mb-3">This is your course</p>
+                                            <div class="flex gap-3">
+                                                <a href="{{ route('courses.edit', $course) }}" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 px-4 rounded transition-colors">
+                                                    ✏️ Edit Course
+                                                </a>
+                                                <form method="POST" action="{{ route('courses.destroy', $course) }}" onsubmit="return confirm('Are you sure you want to delete this course? This action cannot be undone.');" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded transition-colors">
+                                                        🗑️ Delete
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </div>
-                                        <a href="{{ route('enrollments.index') }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded inline-block">
-                                            View My Enrollments
-                                        </a>
-                                    @else
-                                        <a href="{{ route('payments.checkout', $course) }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded inline-block text-lg w-full text-center">
-                                            🎓 Enroll Now - ${{ number_format($course->price, 2) }}
-                                        </a>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Secure payment via Stripe</p>
+                                    @elseif(auth()->user()->role === 'student')
+                                        <!-- Student Enrollment -->
+                                        @if($isEnrolled)
+                                            <div class="bg-green-100 dark:bg-green-900 border border-green-400 text-green-700 dark:text-green-300 px-4 py-3 rounded mb-4">
+                                                <p class="font-semibold">✓ You are enrolled in this course!</p>
+                                            </div>
+                                            <a href="{{ route('enrollments.index') }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded inline-block">
+                                                View My Enrollments
+                                            </a>
+                                        @else
+                                            <a href="{{ route('payments.checkout', $course) }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded inline-block text-lg w-full text-center">
+                                                🎓 Enroll Now - ${{ number_format($course->price, 2) }}
+                                            </a>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Secure payment via Stripe</p>
+                                        @endif
                                     @endif
                                 @else
+                                    <!-- Guest Enrollment -->
                                     <a href="{{ route('payments.checkout', $course) }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded inline-block text-lg w-full text-center">
                                         🎓 Enroll Now - ${{ number_format($course->price, 2) }}
                                     </a>

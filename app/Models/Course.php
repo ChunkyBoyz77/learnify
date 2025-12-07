@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Course extends Model
 {
@@ -20,6 +21,7 @@ class Course extends Model
         'price',
         'level',
         'is_archived',
+        'is_published',
     ];
 
     // Instructor relationship
