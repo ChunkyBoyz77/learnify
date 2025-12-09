@@ -42,6 +42,12 @@ class Course extends Model
         return $this->hasMany(Enrollment::class);
     }
 
+    // Course has many feedbacks
+    public function feedbacks()
+    {
+        return $this->hasMany(Feedback::class);
+    }
+
 
     /**
      * Get the payments for the course.
