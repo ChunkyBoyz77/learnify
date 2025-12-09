@@ -32,21 +32,13 @@
                         {{ __('Courses') }}
                     </x-nav-link>
                     @auth
-                        @if(Auth::user()->role !== 'instructor')
-                            <x-nav-link :href="route('enrollments.index')" :active="request()->routeIs('enrollments.*')" class="px-4 py-2 rounded-lg transition-all hover:bg-teal-100 dark:hover:bg-gray-700">
-                                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                </svg>
-                                {{ __('My Enrollments') }}
-                            </x-nav-link>
-                        @endif
-                        @php
-                            $paymentsRoute = Auth::user()->role === 'instructor' ? route('instructor.payments.index') : route('payments.history');
-                            $paymentsActive = Auth::user()->role === 'instructor' 
-                                ? (request()->routeIs('instructor.payments.*') || request()->routeIs('payments.show')) 
-                                : request()->routeIs('payments.*') && !request()->routeIs('instructor.payments.*');
-                        @endphp
-                        <x-nav-link :href="$paymentsRoute" :active="$paymentsActive" class="px-4 py-2 rounded-lg transition-all hover:bg-teal-100 dark:hover:bg-gray-700">
+                        <x-nav-link :href="route('enrollments.index')" :active="request()->routeIs('enrollments.*')" class="px-4 py-2 rounded-lg transition-all hover:bg-teal-100 dark:hover:bg-gray-700">
+                            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            {{ __('My Enrollments') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('payments.history')" :active="request()->routeIs('payments.*')" class="px-4 py-2 rounded-lg transition-all hover:bg-teal-100 dark:hover:bg-gray-700">
                             <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
                             </svg>
@@ -116,18 +108,10 @@
                 {{ __('Courses') }}
             </x-responsive-nav-link>
             @auth
-                @if(Auth::user()->role !== 'instructor')
-                    <x-responsive-nav-link :href="route('enrollments.index')" :active="request()->routeIs('enrollments.*')">
-                        {{ __('My Enrollments') }}
-                    </x-responsive-nav-link>
-                @endif
-                @php
-                    $paymentsRoute = Auth::user()->role === 'instructor' ? route('instructor.payments.index') : route('payments.history');
-                    $paymentsActive = Auth::user()->role === 'instructor' 
-                        ? (request()->routeIs('instructor.payments.*') || request()->routeIs('payments.show')) 
-                        : request()->routeIs('payments.*') && !request()->routeIs('instructor.payments.*');
-                @endphp
-                <x-responsive-nav-link :href="$paymentsRoute" :active="$paymentsActive">
+                <x-responsive-nav-link :href="route('enrollments.index')" :active="request()->routeIs('enrollments.*')">
+                    {{ __('My Enrollments') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('payments.history')" :active="request()->routeIs('payments.*')">
                     {{ __('Payments') }}
                 </x-responsive-nav-link>
             @endauth
