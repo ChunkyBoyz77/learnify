@@ -59,5 +59,148 @@
             </div>
         </div>
     </div>
+    
+    <script>
+        // Performance monitoring for success page
+        (function() {
+            const pageLoadStart = performance.now();
+            const paymentStartTime = sessionStorage.getItem('payment-start-time');
+            const checkoutRedirectTime = sessionStorage.getItem('checkout-redirect-time');
+            
+            // Track API calls
+            const originalFetch = window.fetch;
+            const apiCalls = [];
+            
+            window.fetch = async function(...args) {
+                const url = args[0];
+                const startTime = performance.now();
+                const method = args[1]?.method || 'GET';
+                
+                try {
+                    const response = await originalFetch.apply(this, args);
+                    const duration = performance.now() - startTime;
+                    apiCalls.push({ 
+                        URL: url.toString().substring(0, 50) + (url.toString().length > 50 ? '...' : ''), 
+                        Method: method, 
+                        Status: response.status, 
+                        'Time (ms)': duration.toFixed(2) 
+                    });
+                    return response;
+                } catch (error) {
+                    const duration = performance.now() - startTime;
+                    apiCalls.push({ 
+                        URL: url.toString().substring(0, 50) + (url.toString().length > 50 ? '...' : ''), 
+                        Method: method, 
+                        Status: 'ERROR', 
+                        'Time (ms)': duration.toFixed(2),
+                        Error: error.message 
+                    });
+                    throw error;
+                }
+            };
+            
+            window.addEventListener('load', () => {
+                const pageLoadTime = performance.now() - pageLoadStart;
+                
+                // Build summary object
+                const summary = {};
+                
+                // Page Load Time
+                summary['Success Page Load'] = `${pageLoadTime.toFixed(2)}ms`;
+                const pageLoadStatus = pageLoadTime < 500 ? '✅' : pageLoadTime < 1000 ? '⚠️' : '❌';
+                
+                // Checkout Session Creation Time (from server)
+                let checkoutCreationTime = null;
+                @if(session('checkout-creation-time'))
+                    checkoutCreationTime = {{ number_format(session('checkout-creation-time'), 2, '.', '') }};
+                    summary['Checkout Session Creation'] = `${checkoutCreationTime}ms`;
+                @endif
+                const checkoutStatus = checkoutCreationTime !== null ? (checkoutCreationTime < 300 ? '✅' : checkoutCreationTime < 500 ? '⚠️' : '❌') : '';
+                
+                // Total Payment Time
+                let totalPaymentTime = null;
+                if (paymentStartTime) {
+                    totalPaymentTime = performance.now() - parseFloat(paymentStartTime);
+                    summary['Total Payment Time'] = `${totalPaymentTime.toFixed(2)}ms`;
+                }
+                
+                // Display formatted report
+                console.log('%c═══════════════════════════════════════════════════════════', 'color: #3b82f6; font-weight: bold;');
+                console.log('%c📊 PAYMENT PERFORMANCE REPORT', 'font-weight: bold; font-size: 16px; color: #3b82f6; background: #f0f9ff; padding: 8px;');
+                console.log('%c═══════════════════════════════════════════════════════════', 'color: #3b82f6; font-weight: bold;');
+                console.log('');
+                
+                // Display metrics with status
+                console.log(`${pageLoadStatus} Success Page Load: ${pageLoadTime.toFixed(2)}ms`);
+                
+                if (checkoutCreationTime !== null) {
+                    console.log(`${checkoutStatus} Checkout Session Creation: ${checkoutCreationTime}ms`);
+                }
+                
+                if (totalPaymentTime !== null) {
+                    const status = totalPaymentTime < 3000 ? '✅' : totalPaymentTime < 5000 ? '⚠️' : '❌';
+                    const statusText = totalPaymentTime < 3000 ? 'Excellent' : totalPaymentTime < 5000 ? 'Good' : 'Slow';
+                    console.log(`${status} Total Payment Time: ${totalPaymentTime.toFixed(2)}ms (${statusText})`);
+                    
+                    // Breakdown
+                    console.log('');
+                    console.log('📋 Time Breakdown:');
+                    console.log(`   • From "Enroll Now" click to success page`);
+                    if (checkoutCreationTime !== null) {
+                        console.log(`   • Checkout session creation: ${checkoutCreationTime}ms`);
+                    }
+                    if (checkoutRedirectTime && paymentStartTime) {
+                        const serverTime = parseFloat(paymentStartTime) - parseFloat(checkoutRedirectTime);
+                        if (serverTime > 0) {
+                            console.log(`   • Server processing: ~${serverTime.toFixed(2)}ms`);
+                        }
+                    }
+                    if (totalPaymentTime !== null) {
+                        let stripeTime = totalPaymentTime - pageLoadTime;
+                        if (checkoutCreationTime !== null) {
+                            stripeTime = stripeTime - checkoutCreationTime;
+                        }
+                        if (stripeTime > 0) {
+                            console.log(`   • Stripe checkout processing: ~${stripeTime.toFixed(2)}ms`);
+                        }
+                    }
+                } else {
+                    console.log('⚠️ Total payment time not available (payment started before tracking)');
+                }
+                
+                // API Calls Summary
+                if (apiCalls.length > 0) {
+                    console.log('');
+                    console.log('📡 API Calls Made:');
+                    console.table(apiCalls);
+                }
+                
+                // Summary Table
+                console.log('');
+                console.log('📋 Performance Summary:');
+                console.table(summary);
+                
+                // Performance tips
+                console.log('');
+                if (pageLoadTime > 1000) {
+                    console.log('%c💡 Tip: Success page load is slow. Consider optimizing images or reducing JavaScript.', 'color: #f59e0b; font-style: italic;');
+                }
+                if (totalPaymentTime && totalPaymentTime > 5000) {
+                    console.log('%c💡 Tip: Total payment time is high. Consider optimizing checkout flow or server response times.', 'color: #f59e0b; font-style: italic;');
+                }
+                if (pageLoadTime < 500 && (!totalPaymentTime || totalPaymentTime < 3000)) {
+                    console.log('%c✅ Excellent performance! All metrics are within optimal ranges.', 'color: #10b981; font-style: italic;');
+                }
+                
+                console.log('%c═══════════════════════════════════════════════════════════', 'color: #3b82f6; font-weight: bold;');
+                
+                // Clear stored times
+                if (paymentStartTime) {
+                    sessionStorage.removeItem('payment-start-time');
+                    sessionStorage.removeItem('checkout-redirect-time');
+                }
+            });
+        })();
+    </script>
 </x-app-layout>
 

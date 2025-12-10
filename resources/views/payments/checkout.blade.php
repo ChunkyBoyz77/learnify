@@ -109,7 +109,77 @@
 
     <script src="https://js.stripe.com/v3/"></script>
     <script>
+        // Payment Performance Monitoring
+        (function() {
+            const marks = {};
+            const measures = {};
+            const apiCalls = [];
+            
+            function mark(name) {
+                performance.mark(name);
+                marks[name] = performance.now();
+                console.log(`⏱️  Mark: ${name} at ${marks[name].toFixed(2)}ms`);
+            }
+            
+            function measure(name, startMark, endMark) {
+                try {
+                    performance.measure(name, startMark, endMark);
+                    const measure = performance.getEntriesByName(name)[0];
+                    measures[name] = measure.duration;
+                    const emoji = measure.duration > 3000 ? '❌' : measure.duration > 1000 ? '⚠️' : '✅';
+                    const color = measure.duration > 3000 ? 'red' : measure.duration > 1000 ? 'orange' : 'green';
+                    console.log(`%c${emoji} Measure: ${name} = ${measure.duration.toFixed(2)}ms`, `font-weight: bold; color: ${color}`);
+                    return measure.duration;
+                } catch (e) {
+                    return null;
+                }
+            }
+            
+            // Track fetch requests
+            const originalFetch = window.fetch;
+            window.fetch = async function(...args) {
+                const url = args[0];
+                const startTime = performance.now();
+                const markName = `api-${Date.now()}`;
+                mark(`${markName}-start`);
+                
+                try {
+                    const response = await originalFetch.apply(this, args);
+                    const duration = performance.now() - startTime;
+                    mark(`${markName}-end`);
+                    measure(`${markName}-duration`, `${markName}-start`, `${markName}-end`);
+                    
+                    apiCalls.push({ url: url.toString(), method: args[1]?.method || 'GET', status: response.status, duration });
+                    const statusEmoji = response.status >= 400 ? '❌' : response.status >= 300 ? '⚠️' : '✅';
+                    console.log(`%c${statusEmoji} API: ${args[1]?.method || 'GET'} ${url}`, `font-weight: bold; color: ${response.status >= 400 ? 'red' : 'green'}`);
+                    console.log(`   Status: ${response.status} | Time: ${duration.toFixed(2)}ms`);
+                    return response;
+                } catch (error) {
+                    const duration = performance.now() - startTime;
+                    console.error(`%c❌ API Error: ${url}`, 'font-weight: bold; color: red');
+                    console.error(`   Error: ${error.message} | Time: ${duration.toFixed(2)}ms`);
+                    throw error;
+                }
+            };
+            
+            // Mark page load
+            mark('checkout-page-start');
+            window.addEventListener('load', () => {
+                mark('checkout-page-end');
+                measure('checkout-page-load', 'checkout-page-start', 'checkout-page-end');
+                console.log('%c📊 Checkout Page Loaded', 'font-weight: bold; font-size: 14px; color: #3b82f6');
+            });
+            
+            // Make monitor available globally
+            window.paymentPerf = { mark, measure, marks, measures, apiCalls };
+        })();
+    </script>
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Start payment flow tracking
+            window.paymentPerf.mark('payment-flow-start');
+            console.log('%c💳 Payment Flow Started', 'font-weight: bold; font-size: 14px; color: #10b981');
+            
             const stripe = Stripe('{{ config("services.stripe.key") }}');
             let elements;
             let paymentElement;
@@ -147,6 +217,7 @@
 
             // Create payment intent
             async function createPaymentIntent() {
+                window.paymentPerf.mark('payment-intent-start');
                 try {
                     const response = await fetch('{{ route("payments.create-intent", $course) }}', {
                         method: 'POST',
@@ -160,6 +231,9 @@
                     });
 
                     const data = await response.json();
+                    window.paymentPerf.mark('payment-intent-end');
+                    window.paymentPerf.measure('payment-intent-duration', 'payment-intent-start', 'payment-intent-end');
+                    
                     if (data.client_secret) {
                         clientSecret = data.client_secret;
                         paymentId = data.payment_id;
@@ -168,6 +242,8 @@
                         alert('Failed to initialize payment. Please try again.');
                     }
                 } catch (error) {
+                    window.paymentPerf.mark('payment-intent-end');
+                    window.paymentPerf.measure('payment-intent-duration', 'payment-intent-start', 'payment-intent-end');
                     console.error('Error:', error);
                     alert('Failed to initialize payment. Please try again.');
                 }
@@ -192,6 +268,9 @@
             // Handle form submission
             paymentForm.addEventListener('submit', async function(event) {
                 event.preventDefault();
+                
+                window.paymentPerf.mark('form-submit-start');
+                console.log('%c📝 Form Submission Started', 'font-weight: bold; font-size: 14px; color: #8b5cf6');
 
                 const selectedMethod = document.querySelector('input[name="payment_method"]:checked').value;
 
@@ -199,6 +278,8 @@
                     submitButton.disabled = true;
                     buttonText.classList.add('hidden');
                     spinner.classList.remove('hidden');
+                    
+                    window.paymentPerf.mark('stripe-confirm-start');
 
                     try {
                         const { error, paymentIntent } = await stripe.confirmPayment({
@@ -209,13 +290,19 @@
                             redirect: 'if_required'
                         });
 
+                        window.paymentPerf.mark('stripe-confirm-end');
+                        window.paymentPerf.measure('stripe-confirm-duration', 'stripe-confirm-start', 'stripe-confirm-end');
+                        
                         if (error) {
                             buttonText.classList.remove('hidden');
                             spinner.classList.add('hidden');
                             submitButton.disabled = false;
                             document.getElementById('card-errors').textContent = error.message;
                         } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-                            // Payment succeeded, redirect to success page
+                            // Payment succeeded, log performance and redirect
+                            window.paymentPerf.mark('payment-flow-end');
+                            window.paymentPerf.measure('payment-flow-duration', 'payment-flow-start', 'payment-flow-end');
+                            window.paymentPerf.logSummary();
                             window.location.href = '{{ route("payments.success", ":payment_id") }}'.replace(':payment_id', paymentId);
                         } else {
                             // Check payment status
@@ -232,6 +319,9 @@
 
                             const confirmData = await confirmResponse.json();
                             if (confirmData.success) {
+                                window.paymentPerf.mark('payment-flow-end');
+                                window.paymentPerf.measure('payment-flow-duration', 'payment-flow-start', 'payment-flow-end');
+                                window.paymentPerf.logSummary();
                                 window.location.href = confirmData.redirect;
                             } else {
                                 buttonText.classList.remove('hidden');
@@ -262,6 +352,26 @@
             } else {
                 stripePaymentElement.classList.add('hidden');
             }
+            
+            // Add summary logging function
+            window.paymentPerf.logSummary = function() {
+                const summary = {
+                    'Page Load': `${(this.measures['checkout-page-load'] || 0).toFixed(2)}ms`,
+                    'Payment Intent Creation': `${(this.measures['payment-intent-duration'] || 0).toFixed(2)}ms`,
+                    'Stripe Confirmation': `${(this.measures['stripe-confirm-duration'] || 0).toFixed(2)}ms`,
+                    'Total Payment Flow': `${(this.measures['payment-flow-duration'] || 0).toFixed(2)}ms`,
+                    'API Calls': this.apiCalls.length,
+                    'Average API Time': this.apiCalls.length > 0 
+                        ? `${(this.apiCalls.reduce((sum, call) => sum + call.duration, 0) / this.apiCalls.length).toFixed(2)}ms`
+                        : '0ms'
+                };
+                console.log('%c📊 Payment Performance Summary', 'font-weight: bold; font-size: 16px; color: #3b82f6; padding: 10px;');
+                console.table(summary);
+                if (this.apiCalls.length > 0) {
+                    console.log('📡 API Calls:');
+                    console.table(this.apiCalls);
+                }
+            };
         });
     </script>
 </x-app-layout>

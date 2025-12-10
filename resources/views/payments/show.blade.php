@@ -91,15 +91,26 @@
                             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
                                 <div class="flex justify-between mb-2">
                                     <span class="text-gray-600 dark:text-gray-400">Enrollment Status:</span>
-                                    <span class="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                    <span class="px-3 py-1 text-sm font-semibold rounded-full 
+                                        {{ $payment->enrollment->status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 
+                                           ($payment->enrollment->status === 'completed' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 
+                                           ($payment->enrollment->status === 'cancelled' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' : 
+                                           'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200')) }}">
                                         {{ ucfirst($payment->enrollment->status) }}
+                                        @if($payment->enrollment->status === 'cancelled')
+                                            (Refunded)
+                                        @endif
                                     </span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-gray-600 dark:text-gray-400">Enrolled At:</span>
                                     <span class="text-gray-900 dark:text-gray-100">{{ $payment->enrollment->enrolled_at ? $payment->enrollment->enrolled_at->format('M d, Y h:i A') : 'N/A' }}</span>
                                 </div>
-                                @if(Auth::user()->role !== 'instructor')
+                                @if($payment->enrollment->status === 'cancelled')
+                                    <div class="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-sm text-red-700 dark:text-red-300">
+                                        ⚠️ This enrollment has been cancelled due to a refund. Course access is no longer available.
+                                    </div>
+                                @elseif(Auth::user()->role !== 'instructor')
                                     <a href="{{ route('enrollments.show', $payment->enrollment) }}" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mt-4 inline-block">
                                         View Enrollment →
                                     </a>

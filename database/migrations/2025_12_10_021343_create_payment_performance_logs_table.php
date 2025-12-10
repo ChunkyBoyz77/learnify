@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('feedback', function (Blueprint $table) {
+        Schema::create('payment_performance_logs', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('course_id');
-            $table->unsignedBigInteger('user_id');
-            $table->tinyInteger('rating'); // e.g., 1 to 5
-            $table->text('comments')->nullable();
             $table->timestamps();
         });
     }
@@ -26,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('feedback');
+        Schema::dropIfExists('payment_performance_logs');
     }
 };

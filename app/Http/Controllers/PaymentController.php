@@ -53,9 +53,21 @@ class PaymentController extends Controller
         }
 
         try {
+            // Track checkout session creation start
+            $checkoutStartTime = microtime(true);
+            
             // Create Stripe Checkout Session
             $result = $this->paymentService->createCheckoutSession($user, $course, [
                 'notes' => request()->notes,
+            ]);
+            
+            // Calculate checkout session creation time
+            $checkoutCreationTime = (microtime(true) - $checkoutStartTime) * 1000; // Convert to milliseconds
+            
+            // Store timing in session for performance tracking
+            session([
+                'checkout-creation-time' => $checkoutCreationTime,
+                'checkout-redirect-time' => microtime(true) * 1000, // Store as milliseconds
             ]);
 
             // Redirect to Stripe Checkout

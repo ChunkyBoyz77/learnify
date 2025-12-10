@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         
         $middleware->alias([
             'instructor' => \App\Http\Middleware\EnsureUserIsInstructor::class,
+            'https.payments' => \App\Http\Middleware\EnforceHttpsForPayments::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

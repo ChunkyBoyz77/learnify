@@ -12,10 +12,12 @@ class EnrollmentController extends Controller
 {
     /**
      * Display a listing of the user's enrollments.
+     * Only shows active and completed enrollments (excludes cancelled/refunded).
      */
     public function index(): View
     {
         $enrollments = Auth::user()->enrollments()
+            ->whereIn('status', ['active', 'completed']) // Exclude cancelled enrollments (refunded)
             ->with(['course'])
             ->latest()
             ->paginate(15);

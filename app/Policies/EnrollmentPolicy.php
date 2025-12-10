@@ -18,10 +18,21 @@ class EnrollmentPolicy
 
     /**
      * Determine whether the user can view the model.
+     * Users cannot view cancelled enrollments (refunded courses).
      */
     public function view(User $user, Enrollment $enrollment): bool
     {
-        return $user->id === $enrollment->user_id;
+        // User must own the enrollment
+        if ($user->id !== $enrollment->user_id) {
+            return false;
+        }
+        
+        // Cannot view cancelled enrollments (refunded courses)
+        if ($enrollment->status === 'cancelled') {
+            return false;
+        }
+        
+        return true;
     }
 
     /**

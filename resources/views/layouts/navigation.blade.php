@@ -38,12 +38,37 @@
                             </svg>
                             {{ __('My Enrollments') }}
                         </x-nav-link>
-                        <x-nav-link :href="route('payments.history')" :active="request()->routeIs('payments.*')" class="px-4 py-2 rounded-lg transition-all hover:bg-teal-100 dark:hover:bg-gray-700">
-                            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
-                            </svg>
-                            {{ __('Payments') }}
-                        </x-nav-link>
+                        <!-- Payments Dropdown -->
+                        <x-dropdown align="left" width="56">
+                            <x-slot name="trigger">
+                                <button class="inline-flex items-center px-4 py-2 rounded-lg transition-all hover:bg-teal-100 dark:hover:bg-gray-700 {{ request()->routeIs('payments.*') || request()->routeIs('security.*') ? 'bg-teal-100 dark:bg-gray-700' : '' }}">
+                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
+                                    <span>{{ __('Payments') }}</span>
+                                    <svg class="ml-1 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </x-slot>
+
+                            <x-slot name="content">
+                                <x-dropdown-link :href="route('payments.history')" :active="request()->routeIs('payments.history')">
+                                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                    </svg>
+                                    {{ __('Payment History') }}
+                                </x-dropdown-link>
+                                @if(Auth::check() && (Auth::user()->role === 'instructor' || Auth::user()->role === 'admin'))
+                                    <x-dropdown-link :href="route('security.metrics.index')" :active="request()->routeIs('security.*')">
+                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                        </svg>
+                                        {{ __('Security Metrics') }}
+                                    </x-dropdown-link>
+                                @endif
+                            </x-slot>
+                        </x-dropdown>
                     @endauth
                 </div>
             </div>
@@ -111,9 +136,21 @@
                 <x-responsive-nav-link :href="route('enrollments.index')" :active="request()->routeIs('enrollments.*')">
                     {{ __('My Enrollments') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('payments.history')" :active="request()->routeIs('payments.*')">
-                    {{ __('Payments') }}
-                </x-responsive-nav-link>
+                <div class="px-4 py-2">
+                    <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+                        {{ __('Payments') }}
+                    </div>
+                    <div class="space-y-1">
+                        <x-responsive-nav-link :href="route('payments.history')" :active="request()->routeIs('payments.history')" class="pl-4">
+                            {{ __('Payment History') }}
+                        </x-responsive-nav-link>
+                        @if(Auth::check() && (Auth::user()->role === 'instructor' || Auth::user()->role === 'admin'))
+                            <x-responsive-nav-link :href="route('security.metrics.index')" :active="request()->routeIs('security.*')" class="pl-4">
+                                {{ __('Security Metrics') }}
+                            </x-responsive-nav-link>
+                        @endif
+                    </div>
+                </div>
             @endauth
         </div>
 

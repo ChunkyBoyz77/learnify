@@ -70,4 +70,28 @@ class User extends Authenticatable
     {
         return $this->hasMany(\App\Models\Payment::class);
     }
+
+    /**
+     * Check if user has active enrollment in a course.
+     * Returns false for cancelled enrollments (refunded courses).
+     */
+    public function hasActiveEnrollment(int $courseId): bool
+    {
+        return $this->enrollments()
+            ->where('course_id', $courseId)
+            ->whereIn('status', ['active', 'completed'])
+            ->exists();
+    }
+
+    /**
+     * Get active enrollment for a course.
+     * Returns null if enrollment is cancelled or doesn't exist.
+     */
+    public function getActiveEnrollment(int $courseId): ?\App\Models\Enrollment
+    {
+        return $this->enrollments()
+            ->where('course_id', $courseId)
+            ->whereIn('status', ['active', 'completed'])
+            ->first();
+    }
 }

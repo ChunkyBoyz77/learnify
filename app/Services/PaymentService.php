@@ -7,6 +7,7 @@ use App\Models\Enrollment;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
 use App\Models\User;
+use App\Services\PaymentSecurityService;
 use Illuminate\Support\Str;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
@@ -15,9 +16,12 @@ use Stripe\Exception\ApiErrorException;
 
 class PaymentService
 {
-    public function __construct()
+    protected PaymentSecurityService $securityService;
+
+    public function __construct(PaymentSecurityService $securityService)
     {
         Stripe::setApiKey(config('services.stripe.secret'));
+        $this->securityService = $securityService;
     }
 
     /**
@@ -329,6 +333,9 @@ class PaymentService
             'payment_details' => $paymentDetails,
         ]);
 
+        // Monitor payment security
+        $this->securityService->monitorPaymentCompletion($payment);
+
         // Create enrollment after successful payment
         $this->createEnrollment($payment);
     }
@@ -361,6 +368,9 @@ class PaymentService
                 'status' => $paymentIntent['status'],
             ]),
         ]);
+
+        // Monitor payment security
+        $this->securityService->monitorPaymentCompletion($payment);
 
         // Create enrollment after successful payment
         $this->createEnrollment($payment);

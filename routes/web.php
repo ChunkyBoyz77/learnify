@@ -5,6 +5,7 @@ use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SecurityMetricsController;
 use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -54,6 +55,7 @@ Route::middleware(['auth', 'instructor'])->group(function () {
     Route::get('/instructor/refund-requests/{refundRequest}', [PaymentController::class, 'showRefundRequest'])->name('payments.refund-requests.show');
     Route::post('/instructor/refund-requests/{refundRequest}/approve', [PaymentController::class, 'approveRefund'])->name('payments.refund-requests.approve');
     Route::post('/instructor/refund-requests/{refundRequest}/reject', [PaymentController::class, 'rejectRefund'])->name('payments.refund-requests.reject');
+
 });
 
 // This must come last to avoid catching /courses/create as a course ID
@@ -64,8 +66,14 @@ Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']
     ->name('stripe.webhook')
     ->middleware('web');
 
-// Payment routes (require authentication)
+// Security metrics routes (instructor/admin only - auth middleware applied, role check in controller)
 Route::middleware('auth')->group(function () {
+    Route::get('/security/metrics', [SecurityMetricsController::class, 'index'])->name('security.metrics.index');
+    Route::get('/security/report', [SecurityMetricsController::class, 'report'])->name('security.metrics.report');
+});
+
+// Payment routes (require authentication and HTTPS enforcement)
+Route::middleware(['auth', 'https.payments'])->group(function () {
     // Payment routes - Checkout redirects to Stripe
     Route::get('/courses/{course}/checkout', [PaymentController::class, 'checkout'])->name('payments.checkout');
     Route::post('/courses/{course}/pay', [PaymentController::class, 'process'])->name('payments.process');
