@@ -86,6 +86,17 @@ class PaymentController extends Controller
             // Track checkout session creation start
             $checkoutStartTime = microtime(true);
             
+            // Get payment start time from client (if provided)
+            $clientPaymentStartTime = request()->input('payment_start_time');
+            if ($clientPaymentStartTime) {
+                // Store the client-side payment start time in session
+                // This is the timestamp from when user clicked "Enroll Now"
+                session(['payment-start-time' => floatval($clientPaymentStartTime)]);
+            } else {
+                // Fallback: use server time if client time not available
+                session(['payment-start-time' => $checkoutStartTime * 1000]); // Store as milliseconds
+            }
+            
             // Create Stripe Checkout Session
             $result = $this->paymentService->createCheckoutSession($user, $course, [
                 'notes' => request()->notes,

@@ -118,10 +118,26 @@
                 const checkoutStatus = checkoutCreationTime !== null ? (checkoutCreationTime < 300 ? '✅' : checkoutCreationTime < 500 ? '⚠️' : '❌') : '';
                 
                 // Total Payment Time
+                // Try to get from sessionStorage first (if available), otherwise use server session
                 let totalPaymentTime = null;
-                if (paymentStartTime) {
-                    totalPaymentTime = performance.now() - parseFloat(paymentStartTime);
+                let paymentStartTimeValue = paymentStartTime;
+                
+                // If sessionStorage has it (didn't get cleared), use it
+                if (paymentStartTimeValue) {
+                    // paymentStartTimeValue is an absolute timestamp (Date.now())
+                    const currentTime = Date.now();
+                    totalPaymentTime = currentTime - parseFloat(paymentStartTimeValue);
                     summary['Total Payment Time'] = `${totalPaymentTime.toFixed(2)}ms`;
+                } else {
+                    // sessionStorage was cleared (happens when redirecting to Stripe)
+                    // Use server-side timing instead
+                    @if(session('payment-start-time'))
+                        // Server has the payment start time (absolute timestamp from client)
+                        const serverPaymentStart = {{ number_format(session('payment-start-time'), 2, '.', '') }};
+                        const currentTime = Date.now();
+                        totalPaymentTime = currentTime - serverPaymentStart;
+                        summary['Total Payment Time'] = `${totalPaymentTime.toFixed(2)}ms`;
+                    @endif
                 }
                 
                 // Display formatted report

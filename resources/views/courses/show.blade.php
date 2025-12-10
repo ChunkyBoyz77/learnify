@@ -71,33 +71,41 @@
                                                 View My Enrollments
                                             </a>
                                         @else
-                                            <a href="{{ route('payments.checkout', $course) }}" 
-                                               onclick="
-                                                   const startTime = performance.now();
-                                                   sessionStorage.setItem('payment-start-time', startTime);
-                                                   sessionStorage.setItem('checkout-redirect-time', startTime);
-                                                   console.log('%c💳 Payment Process Started', 'font-weight: bold; font-size: 14px; color: #10b981');
-                                                   console.log('   Timestamp:', new Date().toISOString());
-                                               "
-                                               class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded inline-block text-lg w-full text-center">
-                                                🎓 Enroll Now - ${{ number_format($course->price, 2) }}
-                                            </a>
+                                            <form action="{{ route('payments.checkout', $course) }}" method="GET" id="enroll-form-{{ $course->id }}">
+                                                <input type="hidden" name="payment_start_time" id="payment_start_time_{{ $course->id }}" value="">
+                                                <button type="submit"
+                                                   onclick="
+                                                       const startTime = Date.now(); // Use absolute timestamp
+                                                       document.getElementById('payment_start_time_{{ $course->id }}').value = startTime;
+                                                       sessionStorage.setItem('payment-start-time', startTime);
+                                                       sessionStorage.setItem('checkout-redirect-time', startTime);
+                                                       console.log('%c💳 Payment Process Started', 'font-weight: bold; font-size: 14px; color: #10b981');
+                                                       console.log('   Timestamp:', new Date().toISOString());
+                                                   "
+                                                   class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded inline-block text-lg w-full text-center">
+                                                    🎓 Enroll Now - ${{ number_format($course->price, 2) }}
+                                                </button>
+                                            </form>
                                             <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Secure payment via Stripe</p>
                                         @endif
                                     @endif
                                 @else
                                     <!-- Guest Enrollment -->
-                                    <a href="{{ route('payments.checkout', $course) }}" 
-                                       onclick="
-                                           const startTime = performance.now();
-                                           sessionStorage.setItem('payment-start-time', startTime);
-                                           sessionStorage.setItem('checkout-redirect-time', startTime);
-                                           console.log('%c💳 Payment Process Started', 'font-weight: bold; font-size: 14px; color: #10b981');
-                                           console.log('   Timestamp:', new Date().toISOString());
-                                       "
-                                       class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded inline-block text-lg w-full text-center">
-                                        🎓 Enroll Now - ${{ number_format($course->price, 2) }}
-                                    </a>
+                                    <form action="{{ route('payments.checkout', $course) }}" method="GET" id="enroll-form-guest-{{ $course->id }}">
+                                        <input type="hidden" name="payment_start_time" id="payment_start_time_guest_{{ $course->id }}" value="">
+                                        <button type="submit"
+                                           onclick="
+                                               const startTime = Date.now(); // Use absolute timestamp
+                                               document.getElementById('payment_start_time_guest_{{ $course->id }}').value = startTime;
+                                               sessionStorage.setItem('payment-start-time', startTime);
+                                               sessionStorage.setItem('checkout-redirect-time', startTime);
+                                               console.log('%c💳 Payment Process Started', 'font-weight: bold; font-size: 14px; color: #10b981');
+                                               console.log('   Timestamp:', new Date().toISOString());
+                                           "
+                                           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded inline-block text-lg w-full text-center">
+                                            🎓 Enroll Now - ${{ number_format($course->price, 2) }}
+                                        </button>
+                                    </form>
                                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
                                         <a href="{{ route('login') }}" class="text-blue-600 hover:underline">Login</a> or 
                                         <a href="{{ route('register') }}" class="text-blue-600 hover:underline">Register</a> to enroll
