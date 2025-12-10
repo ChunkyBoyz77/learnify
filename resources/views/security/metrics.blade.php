@@ -223,7 +223,14 @@
             @if($recentEvents->count() > 0)
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-teal-100 dark:border-gray-700">
                     <div class="p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Security Events</h3>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Recent Security Events</h3>
+                            @if(Auth::user()->role === 'instructor')
+                                <span class="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                                    Showing events for your courses only
+                                </span>
+                            @endif
+                        </div>
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                 <thead class="bg-gray-50 dark:bg-gray-700">

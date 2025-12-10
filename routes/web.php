@@ -66,7 +66,7 @@ Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']
     ->name('stripe.webhook')
     ->middleware('web');
 
-// Security metrics routes (instructor/admin only - auth middleware applied, role check in controller)
+// Security metrics routes (instructor only - auth middleware applied, role check in controller)
 Route::middleware('auth')->group(function () {
     Route::get('/security/metrics', [SecurityMetricsController::class, 'index'])->name('security.metrics.index');
     Route::get('/security/report', [SecurityMetricsController::class, 'report'])->name('security.metrics.report');

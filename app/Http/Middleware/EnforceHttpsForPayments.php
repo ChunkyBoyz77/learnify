@@ -30,8 +30,10 @@ class EnforceHttpsForPayments
                    $request->header('X-Forwarded-Proto') === 'https' ||
                    $request->header('X-Forwarded-Ssl') === 'on';
 
-        // If not secure, log the security event
-        if (!$isSecure) {
+        // Only log and enforce HTTPS in production environment
+        // In development/staging, HTTP is expected and should not be logged as a security event
+        if (!$isSecure && app()->environment('production')) {
+            // Log the security event only in production
             $this->securityService->logSecurityEvent(
                 'non_secure_connection',
                 'critical',
@@ -45,12 +47,10 @@ class EnforceHttpsForPayments
                 ]
             );
 
-            // In production, redirect to HTTPS
-            if (app()->environment('production')) {
-                $url = $request->fullUrl();
-                $url = str_replace('http://', 'https://', $url);
-                return redirect($url, 301);
-            }
+            // Redirect to HTTPS in production
+            $url = $request->fullUrl();
+            $url = str_replace('http://', 'https://', $url);
+            return redirect($url, 301);
         }
 
         return $next($request);

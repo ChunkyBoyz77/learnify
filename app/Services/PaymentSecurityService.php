@@ -93,17 +93,22 @@ class PaymentSecurityService
         string $resource,
         ?Payment $payment = null,
         array $metadata = []
-    ): void {
-        $this->logSecurityEvent(
-            'unauthorized_access_attempt',
-            'critical',
-            "Unauthorized access attempt to {$resource}",
-            $payment,
-            array_merge($metadata, [
+    ): SecurityLog {
+        // For unauthorized access, we want to log the user who attempted access, not the payment owner
+        return SecurityLog::create([
+            'event_type' => 'unauthorized_access_attempt',
+            'severity' => 'critical',
+            'description' => "Unauthorized access attempt to {$resource}",
+            'payment_id' => $payment?->id,
+            'user_id' => auth()->id(), // User who attempted unauthorized access
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'metadata' => array_merge($metadata, [
                 'resource' => $resource,
-                'user_id' => auth()->id(),
-            ])
-        );
+                'payment_owner_id' => $payment?->user_id, // Store payment owner separately
+            ]),
+            'occurred_at' => now(),
+        ]);
     }
 
     /**
@@ -125,49 +130,72 @@ class PaymentSecurityService
 
     /**
      * Calculate security metrics for a given date range.
+     * For instructors, only calculates metrics for their courses.
      */
-    public function calculateSecurityMetrics(?Carbon $startDate = null, ?Carbon $endDate = null): array
+    public function calculateSecurityMetrics(?Carbon $startDate = null, ?Carbon $endDate = null, ?int $instructorId = null): array
     {
         $startDate = $startDate ?? Carbon::now()->subDays(30);
         $endDate = $endDate ?? Carbon::now();
 
+        // Build base query for payments - filter by instructor if provided
+        $paymentQuery = Payment::whereBetween('created_at', [$startDate, $endDate])
+            ->where('status', 'completed');
+        
+        if ($instructorId !== null) {
+            $paymentQuery->whereHas('course', function ($q) use ($instructorId) {
+                $q->where('instructor_id', $instructorId);
+            });
+        }
+
         // Total payments in period
-        $totalPayments = Payment::whereBetween('created_at', [$startDate, $endDate])
-            ->where('status', 'completed')
-            ->count();
+        $totalPayments = $paymentQuery->count();
 
         // Payments with encryption verification
-        $encryptedPayments = Payment::whereBetween('created_at', [$startDate, $endDate])
-            ->where('status', 'completed')
-            ->get()
+        $encryptedPayments = (clone $paymentQuery)->get()
             ->filter(function ($payment) {
                 return $this->verifyPaymentEncryption($payment);
             })
             ->count();
 
+        // Build base query for security logs - filter by instructor's courses if provided
+        $securityLogQuery = SecurityLog::whereBetween('occurred_at', [$startDate, $endDate]);
+        
+        if ($instructorId !== null) {
+            $securityLogQuery->where(function ($q) use ($instructorId) {
+                // Events with payments that belong to instructor's courses
+                $q->whereHas('payment.course', function ($courseQuery) use ($instructorId) {
+                    $courseQuery->where('instructor_id', $instructorId);
+                })
+                // OR general security events (non-secure connection, suspicious activity)
+                ->orWhere(function ($subQ) {
+                    $subQ->whereNull('payment_id')
+                         ->whereIn('event_type', ['non_secure_connection', 'suspicious_activity']);
+                });
+            });
+        }
+
         // Unauthorized access attempts
-        $unauthorizedAttempts = SecurityLog::where('event_type', 'unauthorized_access_attempt')
-            ->whereBetween('occurred_at', [$startDate, $endDate])
+        $unauthorizedAttempts = (clone $securityLogQuery)
+            ->where('event_type', 'unauthorized_access_attempt')
             ->count();
 
         // Non-secure connection attempts
-        $nonSecureConnections = SecurityLog::where('event_type', 'non_secure_connection')
-            ->whereBetween('occurred_at', [$startDate, $endDate])
+        $nonSecureConnections = (clone $securityLogQuery)
+            ->where('event_type', 'non_secure_connection')
             ->count();
 
         // Encryption failures
-        $encryptionFailures = SecurityLog::where('event_type', 'encryption_verification_failed')
-            ->whereBetween('occurred_at', [$startDate, $endDate])
+        $encryptionFailures = (clone $securityLogQuery)
+            ->where('event_type', 'encryption_verification_failed')
             ->count();
 
         // Suspicious activities
-        $suspiciousActivities = SecurityLog::where('event_type', 'suspicious_activity')
-            ->whereBetween('occurred_at', [$startDate, $endDate])
+        $suspiciousActivities = (clone $securityLogQuery)
+            ->where('event_type', 'suspicious_activity')
             ->count();
 
         // Total security events
-        $totalSecurityEvents = SecurityLog::whereBetween('occurred_at', [$startDate, $endDate])
-            ->count();
+        $totalSecurityEvents = $securityLogQuery->count();
 
         // Calculate percentages
         $encryptionSuccessRate = $totalPayments > 0 
@@ -203,10 +231,11 @@ class PaymentSecurityService
 
     /**
      * Get security metrics summary.
+     * For instructors, only shows summary for their courses.
      */
-    public function getSecurityMetricsSummary(): array
+    public function getSecurityMetricsSummary(?int $instructorId = null): array
     {
-        $metrics = $this->calculateSecurityMetrics();
+        $metrics = $this->calculateSecurityMetrics(null, null, $instructorId);
         
         return [
             'overall_status' => $this->getOverallSecurityStatus($metrics),
@@ -279,22 +308,41 @@ class PaymentSecurityService
 
     /**
      * Get recent security events.
+     * For instructors, only shows events related to their courses.
      */
-    public function getRecentSecurityEvents(int $limit = 50): \Illuminate\Database\Eloquent\Collection
+    public function getRecentSecurityEvents(int $limit = 50, ?int $instructorId = null): \Illuminate\Database\Eloquent\Collection
     {
-        return SecurityLog::with(['payment', 'user'])
-            ->orderBy('occurred_at', 'desc')
-            ->limit($limit)
-            ->get();
+        $query = SecurityLog::with(['payment.course', 'user'])
+            ->orderBy('occurred_at', 'desc');
+
+        // If instructor ID is provided, filter to only show events for their courses
+        if ($instructorId !== null) {
+            $query->where(function ($q) use ($instructorId) {
+                // Events with payments that belong to instructor's courses
+                $q->whereHas('payment.course', function ($courseQuery) use ($instructorId) {
+                    $courseQuery->where('instructor_id', $instructorId);
+                })
+                // OR events without payments but related to instructor's courses (if any metadata indicates course)
+                ->orWhere(function ($subQ) {
+                    // General security events that don't have payment_id
+                    // These are shown to all instructors as they're system-wide
+                    $subQ->whereNull('payment_id')
+                         ->whereIn('event_type', ['non_secure_connection', 'suspicious_activity']);
+                });
+            });
+        }
+
+        return $query->limit($limit)->get();
     }
 
     /**
      * Generate security report.
+     * For instructors, only includes data for their courses.
      */
-    public function generateSecurityReport(?Carbon $startDate = null, ?Carbon $endDate = null): array
+    public function generateSecurityReport(?Carbon $startDate = null, ?Carbon $endDate = null, ?int $instructorId = null): array
     {
-        $metrics = $this->calculateSecurityMetrics($startDate, $endDate);
-        $recentEvents = $this->getRecentSecurityEvents(100);
+        $metrics = $this->calculateSecurityMetrics($startDate, $endDate, $instructorId);
+        $recentEvents = $this->getRecentSecurityEvents(100, $instructorId);
         
         return [
             'report_generated_at' => now()->toIso8601String(),

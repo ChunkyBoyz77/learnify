@@ -61,7 +61,7 @@ class RefundRequest extends Model
     }
 
     /**
-     * Get the user (instructor/admin) who processed the refund.
+     * Get the user (instructor) who processed the refund.
      */
     public function processor(): BelongsTo
     {

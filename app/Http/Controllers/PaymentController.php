@@ -9,22 +9,52 @@ use App\Models\PaymentMethod;
 use App\Models\RefundRequest;
 use App\Models\User;
 use App\Services\PaymentService;
+use App\Services\PaymentSecurityService;
 use App\Services\RefundService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class PaymentController extends Controller
 {
     protected PaymentService $paymentService;
     protected RefundService $refundService;
+    protected PaymentSecurityService $securityService;
 
-    public function __construct(PaymentService $paymentService, RefundService $refundService)
+    public function __construct(PaymentService $paymentService, RefundService $refundService, PaymentSecurityService $securityService)
     {
         $this->paymentService = $paymentService;
         $this->refundService = $refundService;
+        $this->securityService = $securityService;
+    }
+
+    /**
+     * Authorize action and log unauthorized access attempts.
+     */
+    protected function authorizeAndLog(string $ability, $payment, string $resourceDescription = null): void
+    {
+        try {
+            $this->authorize($ability, $payment);
+        } catch (AuthorizationException $e) {
+            // Log unauthorized access attempt
+            $resource = $resourceDescription ?? "payment #{$payment->id}";
+            $this->securityService->logUnauthorizedAccess(
+                $resource,
+                $payment,
+                [
+                    'payment_id' => $payment->id,
+                    'payment_user_id' => $payment->user_id,
+                    'attempted_by_user_id' => Auth::id(),
+                    'attempted_by_role' => Auth::user()->role ?? 'guest',
+                    'url' => request()->fullUrl(),
+                    'ability' => $ability,
+                ]
+            );
+            throw $e; // Re-throw to show 403
+        }
     }
 
 
@@ -162,7 +192,7 @@ class PaymentController extends Controller
         ]);
 
         $payment = Payment::findOrFail($request->payment_id);
-        $this->authorize('view', $payment);
+        $this->authorizeAndLog('view', $payment);
 
         // Verify payment status with Stripe
         $isCompleted = $this->paymentService->verifyPaymentStatus($payment);
@@ -187,7 +217,7 @@ class PaymentController extends Controller
      */
     public function success(Payment $payment, Request $request): View
     {
-        $this->authorize('view', $payment);
+        $this->authorizeAndLog('view', $payment);
 
         // Verify payment status if coming from Stripe Checkout
         if ($request->has('session_id')) {
@@ -205,7 +235,7 @@ class PaymentController extends Controller
      */
     public function failure(Payment $payment): View
     {
-        $this->authorize('view', $payment);
+        $this->authorizeAndLog('view', $payment);
 
         return view('payments.failure', [
             'payment' => $payment->load('course'),
@@ -217,7 +247,7 @@ class PaymentController extends Controller
      */
     public function pending(Payment $payment): View
     {
-        $this->authorize('view', $payment);
+        $this->authorizeAndLog('view', $payment);
 
         return view('payments.pending', [
             'payment' => $payment->load('course'),
@@ -253,7 +283,8 @@ class PaymentController extends Controller
      */
     public function show(Payment $payment): View
     {
-        $this->authorize('view', $payment);
+        // Check authorization and log unauthorized attempts
+        $this->authorizeAndLog('view', $payment);
 
         $payment->load(['course', 'enrollment', 'paymentMethod', 'user', 'refundRequests']);
         

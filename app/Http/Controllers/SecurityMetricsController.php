@@ -25,8 +25,8 @@ class SecurityMetricsController extends Controller
             abort(403, 'You must be logged in to view security metrics.');
         }
 
-        if (auth()->user()->role !== 'instructor' && auth()->user()->role !== 'admin') {
-            abort(403, 'Only instructors and administrators can view security metrics.');
+        if (auth()->user()->role !== 'instructor') {
+            abort(403, 'Only instructors can view security metrics.');
         }
     }
 
@@ -46,10 +46,13 @@ class SecurityMetricsController extends Controller
             ? Carbon::parse($request->end_date) 
             : Carbon::now();
 
-        // Calculate metrics
-        $metrics = $this->securityService->calculateSecurityMetrics($startDate, $endDate);
-        $summary = $this->securityService->getSecurityMetricsSummary();
-        $recentEvents = $this->securityService->getRecentSecurityEvents(20);
+        // Get instructor ID for filtering
+        $instructorId = auth()->id();
+
+        // Calculate metrics (filtered by instructor's courses)
+        $metrics = $this->securityService->calculateSecurityMetrics($startDate, $endDate, $instructorId);
+        $summary = $this->securityService->getSecurityMetricsSummary($instructorId);
+        $recentEvents = $this->securityService->getRecentSecurityEvents(20, $instructorId);
 
         return view('security.metrics', [
             'metrics' => $metrics,
@@ -75,7 +78,10 @@ class SecurityMetricsController extends Controller
             ? Carbon::parse($request->end_date) 
             : Carbon::now();
 
-        $report = $this->securityService->generateSecurityReport($startDate, $endDate);
+        // Get instructor ID for filtering
+        $instructorId = auth()->id();
+
+        $report = $this->securityService->generateSecurityReport($startDate, $endDate, $instructorId);
 
         // Return JSON response (can be extended to PDF/Excel export)
         return response()->json($report, 200, [], JSON_PRETTY_PRINT);
