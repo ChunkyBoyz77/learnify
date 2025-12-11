@@ -64,77 +64,6 @@
                                     {{ $course->what_you_will_learn }}
                                 </p>
                             </div>
-                            
-                            <!-- Enrollment/Instructor Actions Section -->
-                            <div class="mt-6 space-y-4">
-                                @auth
-                                    @if(auth()->user()->role === 'instructor' && auth()->id() === $course->instructor_id)
-                                        <!-- Instructor Actions -->
-                                        <div class="bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 px-4 py-3 rounded mb-4">
-                                            <p class="font-semibold text-teal-800 dark:text-teal-300 mb-3">This is your course</p>
-                                            <div class="flex gap-3">
-                                                <a href="{{ route('courses.edit', $course) }}" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 px-4 rounded transition-colors">
-                                                    ✏️ Edit Course
-                                                </a>
-                                                <form method="POST" action="{{ route('courses.destroy', $course) }}" onsubmit="return confirm('Are you sure you want to delete this course? This action cannot be undone.');" class="inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded transition-colors">
-                                                        🗑️ Delete
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    @elseif(auth()->user()->role === 'student')
-                                        <!-- Student Enrollment -->
-                                        @if($isEnrolled)
-                                            <div class="bg-green-100 dark:bg-green-900 border border-green-400 text-green-700 dark:text-green-300 px-4 py-3 rounded mb-4">
-                                                <p class="font-semibold">✓ You are enrolled in this course!</p>
-                                            </div>
-                                            <a href="{{ route('enrollments.index') }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded inline-block">
-                                                View My Enrollments
-                                            </a>
-                                        @else
-                                            <form action="{{ route('payments.checkout', $course) }}" method="GET" id="enroll-form-{{ $course->id }}">
-                                                <input type="hidden" name="payment_start_time" id="payment_start_time_{{ $course->id }}" value="">
-                                                <button type="submit"
-                                                   onclick="
-                                                       const startTime = Date.now(); // Use absolute timestamp
-                                                       document.getElementById('payment_start_time_{{ $course->id }}').value = startTime;
-                                                       sessionStorage.setItem('payment-start-time', startTime);
-                                                       sessionStorage.setItem('checkout-redirect-time', startTime);
-                                                       console.log('%c💳 Payment Process Started', 'font-weight: bold; font-size: 14px; color: #10b981');
-                                                       console.log('   Timestamp:', new Date().toISOString());
-                                                   "
-                                                   class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded inline-block text-lg w-full text-center">
-                                                    🎓 Enroll Now - ${{ number_format($course->price, 2) }}
-                                                </button>
-                                            </form>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Secure payment via Stripe</p>
-                                        @endif
-                                    @endif
-                                @else
-                                    <!-- Guest Enrollment -->
-                                    <form action="{{ route('payments.checkout', $course) }}" method="GET" id="enroll-form-guest-{{ $course->id }}">
-                                        <input type="hidden" name="payment_start_time" id="payment_start_time_guest_{{ $course->id }}" value="">
-                                        <button type="submit"
-                                           onclick="
-                                               const startTime = Date.now(); // Use absolute timestamp
-                                               document.getElementById('payment_start_time_guest_{{ $course->id }}').value = startTime;
-                                               sessionStorage.setItem('payment-start-time', startTime);
-                                               sessionStorage.setItem('checkout-redirect-time', startTime);
-                                               console.log('%c💳 Payment Process Started', 'font-weight: bold; font-size: 14px; color: #10b981');
-                                               console.log('   Timestamp:', new Date().toISOString());
-                                           "
-                                           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded inline-block text-lg w-full text-center">
-                                            🎓 Enroll Now - ${{ number_format($course->price, 2) }}
-                                        </button>
-                                    </form>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                                        <a href="{{ route('login') }}" class="text-blue-600 hover:underline">Login</a> or 
-                                        <a href="{{ route('register') }}" class="text-blue-600 hover:underline">Register</a> to enroll
-                                    </p>
-                                @endauth
                         @endif
 
                         {{-- SKILLS GAINED --}}
@@ -149,25 +78,86 @@
                             </div>
                         @endif
 
+                        {{-- NEW: ASSESSMENT INFO --}}
+                        @if($course->assessment_info)
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-purple-600 dark:text-purple-400 mb-2">
+                                    Assessment Information
+                                </h3>
+                                <p class="text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                                    {{ $course->assessment_info }}
+                                </p>
+                            </div>
+                        @endif
+
+                        {{-- NEW: DURATION --}}
+                        @if($course->duration)
+                            <div class="mb-4">
+                                <h3 class="text-md font-semibold text-indigo-600 dark:text-indigo-400 mb-1">
+                                    Duration
+                                </h3>
+                                <p class="text-gray-700 dark:text-gray-300">
+                                    {{ $course->duration }}
+                                </p>
+                            </div>
+                        @endif
+
+                        {{-- NEW: LEVEL --}}
+                        @if($course->level)
+                            <div class="mb-8">
+                                <h3 class="text-md font-semibold text-amber-600 dark:text-amber-400 mb-1">
+                                    Difficulty Level
+                                </h3>
+                                <span class="px-3 py-1 bg-amber-100 dark:bg-amber-700 text-amber-700 dark:text-amber-200 rounded-full text-sm font-semibold">
+                                    {{ $course->level }}
+                                </span>
+                            </div>
+                        @endif
+
+                        {{-- NEW: LESSON LIST --}}
+                        <div class="mt-8">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-gray-200 mb-3">
+                                Course Lessons
+                            </h3>
+
+                            @php
+                                $lessons = $course->lessons()->orderBy('order_number')->get();
+                            @endphp
+
+                            @if($lessons->count() > 0)
+                                <ul class="space-y-2">
+                                    @foreach($lessons as $lesson)
+                                        <li class="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600">
+                                            <span class="font-semibold text-teal-700 dark:text-teal-300">
+                                                Lesson {{ $lesson->order_number }}:
+                                            </span>
+                                            <span class="text-gray-800 dark:text-gray-200">
+                                                {{ $lesson->title }}
+                                            </span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p class="text-gray-500 dark:text-gray-400">No lessons added yet.</p>
+                            @endif
+                        </div>
+
                         {{-- ACTION BUTTONS --}}
                         <div class="mt-6 space-y-4">
 
                             @auth
-                                {{-- IF INSTRUCTOR OWNS THIS COURSE --}}
-                                @if(auth()->user()->role === 'instructor' && auth()->id() === $course->instructor_id)
 
+                                {{-- INSTRUCTOR --}}
+                                @if(auth()->user()->role === 'instructor' && auth()->id() === $course->instructor_id)
                                     <div class="bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-700 px-4 py-4 rounded-xl mb-4">
-                                        <p class="font-semibold text-teal-700 dark:text-teal-300 mb-3">
+                                        <p class="font-semibold text-teal-700 dark:text-teal-300">
                                             You are the instructor of this course.
                                         </p>
-
-                                        
                                     </div>
 
-                                {{-- IF STUDENT --}}
+                                {{-- STUDENT --}}
                                 @elseif(auth()->user()->role === 'student')
 
-                                    {{-- ALREADY ENROLLED --}}
                                     @if($isEnrolled)
                                         <div class="bg-green-100 dark:bg-green-900 border border-green-400 text-green-800 dark:text-green-300 px-4 py-3 rounded-lg mb-4">
                                             ✓ You are enrolled in this course.
@@ -178,7 +168,6 @@
                                             Go to My Courses
                                         </a>
 
-                                    {{-- NOT ENROLLED YET --}}
                                     @else
                                         <a href="{{ route('payments.checkout', $course) }}"
                                            class="w-full block text-center bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-bold py-3 rounded-lg shadow-lg transition">
@@ -196,12 +185,13 @@
                                     Login to Enroll
                                 </a>
                             @endauth
+
                         </div>
 
-                    </div> {{-- END RIGHT SIDE --}}
-                </div> {{-- END GRID --}}
+                    </div>
+                </div>
+            </div>
 
-            </div> {{-- END CARD --}}
         </div>
     </div>
 </x-app-layout>

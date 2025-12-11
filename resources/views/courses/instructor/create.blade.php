@@ -108,28 +108,25 @@
         </div>
     </div>
 
-    <!-- ========== JS TO ADD LESSONS DYNAMICALLY ========== -->
     <script>
         let lessonCount = 0;
 
         function addLesson() {
-            lessonCount++;
+            const index = lessonCount++;
 
             const container = document.getElementById('lessons-container');
 
             const lessonHTML = `
                 <div class="mb-6 p-4 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300">
-                    <h4 class="font-semibold text-gray-800 dark:text-gray-100 mb-3">Lesson ${lessonCount}</h4>
+                    <h4 class="font-semibold mb-3">Lesson ${index + 1}</h4>
 
-                    <label class="block text-gray-700 dark:text-gray-300 mb-1">Lesson Title</label>
-                    <input type="text" name="lessons[${lessonCount}][title]"
-                           placeholder="e.g. Introduction to Python"
-                           class="w-full mb-3 px-4 py-2 rounded-lg border-gray-300" required>
+                    <label class="block mb-1">Lesson Title</label>
+                    <input type="text" name="lessons[${index}][title]"
+                        class="w-full mb-3 px-4 py-2 rounded-lg border-gray-300" required>
                 </div>
             `;
 
             container.insertAdjacentHTML('beforeend', lessonHTML);
         }
     </script>
-
 </x-app-layout>

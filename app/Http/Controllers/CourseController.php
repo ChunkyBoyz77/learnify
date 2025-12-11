@@ -4,25 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\Lesson;
+use App\Models\Material;
 use App\Models\Quiz;
 use App\Models\QuizQuestion;
+use App\Models\QuizAttempt;
 use App\Models\Enrollment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 class CourseController extends Controller
 {
-    /* ============================================================
-     * 1. EXPLORE COURSES (ALL USERS)
-     * ============================================================ */
+    /* =========================
+     * 1. Explore Courses
+     * ========================= */
     public function index(Request $request)
     {
         $search = $request->input('search');
 
-        $courses = Course::query()
-            ->when($search, function ($query, $search) {
-                return $query->where('title', 'like', "%$search%");
+        $courses = Course::when($search, function ($query, $search) {
+                $query->where('title', 'like', "%{$search}%");
             })
             ->latest()
             ->paginate(12);
@@ -31,9 +31,9 @@ class CourseController extends Controller
     }
 
 
-    /* ============================================================
-     * 2. SHOW COURSE DETAIL (Before Enrollment)
-     * ============================================================ */
+    /* =========================
+     * 2. Show Course Detail
+     * ========================= */
     public function show(Course $course)
     {
         $isEnrolled = false;
@@ -48,20 +48,19 @@ class CourseController extends Controller
     }
 
 
-    /* ============================================================
-     * 3. INSTRUCTOR – MY COURSES
-     * ============================================================ */
+    /* =========================
+     * 3. Instructor My Courses
+     * ========================= */
     public function myCoursesInstructor()
     {
         $courses = Course::where('instructor_id', Auth::id())->latest()->get();
-
         return view('courses.instructor.my-courses', compact('courses'));
     }
 
 
-    /* ============================================================
-     * 4. STUDENT – MY COURSES
-     * ============================================================ */
+    /* =========================
+     * 4. Student My Courses
+     * ========================= */
     public function myCoursesStudent()
     {
         $courses = Course::join('enrollments', 'courses.id', '=', 'enrollments.course_id')
@@ -73,193 +72,242 @@ class CourseController extends Controller
     }
 
 
-    /* ============================================================
-     * 5. INSTRUCTOR – CREATE NEW COURSE
-     * ============================================================ */
+    /* =========================
+     * 5. Show Create Course Form
+     * ========================= */
     public function create()
     {
         return view('courses.instructor.create');
     }
 
-  public function store(Request $request)
-{
-    $request->validate([
-        'title'   => 'required|string|max:255',
-        'description' => 'required',
-        'price' => 'required|numeric',
-        'image'  => 'nullable|image'
-    ]);
 
-    $path = null;
-    if ($request->hasFile('image')) {
-        $path = $request->file('image')->store('course_images', 'public');
+    /* =========================
+     * 6. Store Course + Lessons
+     * ========================= */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title'       => 'required',
+            'description' => 'required',
+            'price'       => 'required|numeric',
+            'image'       => 'nullable|image',
+        ]);
+
+        $path = $request->hasFile('image')
+            ? $request->file('image')->store('course_images', 'public')
+            : null;
+
+        $course = Course::create([
+            'instructor_id'      => Auth::id(),
+            'title'              => $request->title,
+            'description'        => $request->description,
+            'what_you_will_learn'=> $request->what_you_will_learn,
+            'skills_gain'        => $request->skills_gain,
+            'assessment_info'    => $request->assessment_info,
+            'duration'           => $request->duration,
+            'price'              => $request->price,
+            'level'              => $request->level,
+            'image'              => $path,
+        ]);
+
+        // SAVE LESSONS
+        if ($request->has('lessons')) {
+            foreach (array_values($request->lessons) as $index => $lesson) {
+                if (!empty($lesson['title'])) {
+                    Lesson::create([
+                        'course_id'    => $course->id,
+                        'title'        => $lesson['title'],
+                        'order_number' => $index + 1,
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->route('courses.my')->with('success', 'Course created successfully!');
     }
 
-    // CREATE COURSE
-    $course = Course::create([
-        'title'             => $request->title,
-        'description'       => $request->description,
-        'what_you_will_learn' => $request->what_you_will_learn,
-        'skills_gain'       => $request->skills_gain,
-        'assessment_info'   => $request->assessment_info,
-        'duration'          => $request->duration,
-        'price'             => $request->price,
-        'level'             => $request->level,
-        'image'             => $path,
-        'instructor_id'     => Auth::id(),
-    ]);
 
-    // SAVE LESSONS
-    if ($request->has('lessons')) {
-        foreach ($request->lessons as $index => $lessonData) {
-            Lesson::create([
-                'course_id'    => $course->id,
-                'title'        => $lessonData['title'],
-                'order_number' => $index, // 1,2,3,4
+    /* =========================
+     * 7. Course Content Page
+     * ========================= */
+    public function content(Request $request, Course $course)
+    {
+        $lessons = $course->lessons()
+            ->with(['materials', 'quiz.questions'])
+            ->orderBy('order_number')
+            ->get();
+
+        // selected lesson
+        $selectedLesson = $request->lesson
+            ? $lessons->firstWhere('id', $request->lesson)
+            : $lessons->first();
+
+        return view('courses.instructor.content', compact('course', 'lessons', 'selectedLesson'));
+    }
+
+
+    /* =========================
+     * 8. Edit Lesson Material
+     * ========================= */
+    public function editMaterial(Lesson $lesson)
+    {
+        if (Auth::id() !== $lesson->course->instructor_id) abort(403);
+
+        return view('courses.instructor.edit-material', [
+            'lesson'    => $lesson,
+            'materials' => $lesson->materials,
+            'quiz'      => $lesson->quiz()->with('questions')->first(),
+        ]);
+    }
+
+    public function updateMaterial(Request $request, Lesson $lesson)
+    {
+        if (Auth::id() !== $lesson->course->instructor_id) abort(403);
+
+        // Video file
+        if ($request->hasFile('video_file')) {
+            $path = $request->file('video_file')->store('materials/videos', 'public');
+            $lesson->materials()->create([
+                'file_path' => $path,
+                'file_type' => 'video',
             ]);
         }
+
+        // YouTube URL
+        if ($request->filled('video_url')) {
+            $lesson->materials()->create([
+                'file_path' => $request->video_url,
+                'file_type' => 'video',
+            ]);
+        }
+
+        // Notes PDF
+        if ($request->hasFile('note_file')) {
+            $path = $request->file('note_file')->store('materials/notes', 'public');
+            $lesson->materials()->create([
+                'file_path' => $path,
+                'file_type' => 'pdf',
+            ]);
+        }
+
+        return back()->with('success', 'Material updated successfully.');
     }
 
-    return redirect()->route('courses.my')
-                     ->with('success', 'Course created successfully!');
-}
+
+    /* =========================
+     * 9. QUIZ EDITOR
+     * ========================= */
+    public function quizEditor(Lesson $lesson)
+    {
+        if (Auth::id() !== $lesson->course->instructor_id) abort(403);
+
+        $quiz = $lesson->quiz()->firstOrCreate([
+            'title' => 'Quiz for ' . $lesson->title,
+        ]);
+
+        $quiz->load('questions');
+
+        return view('courses.instructor.quiz-create', compact('lesson', 'quiz'));
+    }
 
 
-    /* ============================================================
-     * 6. COURSE CONTENT PAGE (Instructor + Student)
-     * ============================================================ */
-  public function content(Request $request, Course $course)
+    public function quizStore(Request $request, Lesson $lesson)
+    {
+        if (Auth::id() !== $lesson->course->instructor_id) abort(403);
+
+        $request->validate([
+            'question_text' => 'required',
+            'option_a'      => 'required',
+            'option_b'      => 'required',
+            'option_c'      => 'required',
+            'correct_option'=> 'required|in:A,B,C',
+        ]);
+
+        $quiz = $lesson->quiz()->firstOrCreate([
+            'title' => 'Quiz for ' . $lesson->title,
+        ]);
+
+        $options = [
+            $request->option_a,
+            $request->option_b,
+            $request->option_c,
+        ];
+
+        $correct = ['A'=>0,'B'=>1,'C'=>2][$request->correct_option];
+
+        QuizQuestion::create([
+            'quiz_id'              => $quiz->id,
+            'question_text'        => $request->question_text,
+            'options'              => $options,
+            'correct_option_index' => $correct,
+        ]);
+
+        return back()->with('success', 'Question added!');
+    }
+
+    public function studentContent(Request $request, Course $course)
 {
-    $lessons = Lesson::where('course_id', $course->id)
-                     ->orderBy('order_number')
-                     ->get();
+    // must be enrolled
+    $isEnrolled = Enrollment::where('user_id', Auth::id())
+        ->where('course_id', $course->id)
+        ->exists();
 
-    // Auto-select first lesson if none selected
+    if (!$isEnrolled) {
+        abort(403, 'You must be enrolled to access this course.');
+    }
+
+    $lessons = $course->lessons()
+        ->with(['materials', 'quiz.questions'])
+        ->orderBy('order_number')
+        ->get();
+
     $selectedLesson = null;
 
     if ($request->has('lesson')) {
-        $selectedLesson = Lesson::find($request->lesson);
+        $selectedLesson = $lessons->firstWhere('id', (int)$request->lesson);
     } elseif ($lessons->count() > 0) {
         $selectedLesson = $lessons->first();
     }
 
-    return view('courses.instructor.content', compact('course', 'lessons', 'selectedLesson'));
+    return view('courses.student.content', compact('course', 'lessons', 'selectedLesson'));
 }
 
-
-    /* ============================================================
-     * 7. EDIT MODULE (Upload Video, Notes)
-     * ============================================================ */
-    public function editMaterial(Lesson $lesson)
-{
-    // Load related materials (video + notes)
-    $materials = $lesson->materials;
-
-    // Load quiz (if exists)
-    $quiz = $lesson->quiz;
-
-    return view('courses.instructor.edit-material', compact('lesson', 'materials', 'quiz'));
-}
-
-    public function updateMaterial(Request $request, Lesson $lesson)
-{
-    $request->validate([
-        'video_file' => 'nullable|mimetypes:video/mp4,video/avi,video/mov|max:20000',
-        'video_url'  => 'nullable|string',
-        'note_file'  => 'nullable|mimes:pdf|max:10000',
-    ]);
-
-    /** -------------------------------
-     * 1. Save VIDEO (File or URL)
-     * ------------------------------- */
-    if ($request->hasFile('video_file')) {
-        $path = $request->file('video_file')->store('materials/videos', 'public');
-
-        $lesson->materials()->create([
-            'file_path' => $path,
-            'file_type' => 'video',
-        ]);
-    }
-
-    if ($request->video_url) {
-        $lesson->materials()->create([
-            'file_path' => $request->video_url,
-            'file_type' => 'video_url',
-        ]);
-    }
-
-    /** -------------------------------
-     * 2. Save NOTES (PDF)
-     * ------------------------------- */
-    if ($request->hasFile('note_file')) {
-        $path = $request->file('note_file')->store('materials/notes', 'public');
-
-        $lesson->materials()->create([
-            'file_path' => $path,
-            'file_type' => 'pdf',
-        ]);
-    }
-
-    return redirect()->route('courses.content', ['course' => $lesson->course_id])
-            ->with('success', 'Lesson material updated successfully.');
-}
-
-
-
-    /* ============================================================
-     * 8. QUIZ EDITOR (Instructor)
-     * ============================================================ */
-    public function quizEditor(Module $module)
+    /* =========================
+     * 10. Student Take Quiz
+     * ========================= */
+    public function quizTake(Lesson $lesson)
     {
-        $questions = QuizQuestion::where('module_id', $module->id)->get();
+        if (!Auth::check() || Auth::user()->role !== 'student') abort(403);
 
-        return view('courses.instructor.quiz-create', compact('module', 'questions'));
+        $quiz = $lesson->quiz()->with('questions')->firstOrFail();
+
+        return view('courses.student.quiz-take', compact('lesson','quiz'));
     }
 
-    public function quizStore(Request $request, Module $module)
+    public function quizSubmit(Request $request, Lesson $lesson)
     {
-        $request->validate([
-            'question' => 'required|string',
-            'option_a' => 'required|string',
-            'option_b' => 'required|string',
-            'option_c' => 'required|string',
-            'correct_answer' => 'required|in:A,B,C',
-        ]);
+        if (Auth::user()->role !== 'student') abort(403);
 
-        QuizQuestion::create([
-            'module_id' => $module->id,
-            'question' => $request->question,
-            'option_a' => $request->option_a,
-            'option_b' => $request->option_b,
-            'option_c' => $request->option_c,
-            'correct_answer' => $request->correct_answer,
-        ]);
+        $quiz = $lesson->quiz()->with('questions')->firstOrFail();
+        $questions = $quiz->questions;
 
-        return back()->with('success', 'Quiz question added successfully!');
-    }
-
-
-    /* ============================================================
-     * 9. STUDENT – TAKE QUIZ
-     * ============================================================ */
-    public function quizTake(Module $module)
-    {
-        $questions = QuizQuestion::where('module_id', $module->id)->get();
-
-        return view('courses.student.quiz-take', compact('module', 'questions'));
-    }
-
-    public function quizSubmit(Request $request, Module $module)
-    {
-        $questions = QuizQuestion::where('module_id', $module->id)->get();
-
+        $answers = $request->answers;
         $score = 0;
-        foreach ($questions as $question) {
-            if ($request->input('answer_'.$question->id) == $question->correct_answer) {
+
+        foreach ($questions as $q) {
+            if (isset($answers[$q->id]) &&
+                (int)$answers[$q->id] === $q->correct_option_index) {
                 $score++;
             }
         }
 
-        return back()->with('success', "Your score: $score / " . count($questions));
+        QuizAttempt::create([
+            'user_id' => Auth::id(),
+            'quiz_id' => $quiz->id,
+            'answers' => $answers,
+            'score'   => $score,
+        ]);
+
+        return back()->with('success', "Your score: {$score} / {$questions->count()}");
     }
 }

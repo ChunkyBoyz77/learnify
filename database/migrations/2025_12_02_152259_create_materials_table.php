@@ -15,7 +15,8 @@ return new class extends Migration
             $table->foreign('lesson_id')->references('id')->on('lessons')->onDelete('cascade');
 
             $table->string('file_path');
-            $table->enum('file_type', ['video', 'pdf'])->default('pdf');
+            $table->enum('file_type', ['video', 'video_url', 'pdf'])->default('pdf');
+
 
             $table->timestamps();
         });
