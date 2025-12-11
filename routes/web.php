@@ -26,10 +26,12 @@ Route::get('/instructor/dashboard', function () {
     return view('instructor-dashboard');
 })->middleware(['auth', 'verified'])->name('instructor.dashboard');
 
-// Public course routes
+// Explore Courses
 Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
 
-// Instructor-only course CRUD routes (must come before /courses/{course} route)
+
+
+
 Route::middleware(['auth', 'instructor'])->group(function () {
     Route::get('/courses/create', [CourseController::class, 'create'])->name('courses.create');
     Route::post('/courses', [CourseController::class, 'store'])->name('courses.store');
@@ -56,10 +58,53 @@ Route::middleware(['auth', 'instructor'])->group(function () {
     Route::post('/instructor/refund-requests/{refundRequest}/approve', [PaymentController::class, 'approveRefund'])->name('payments.refund-requests.approve');
     Route::post('/instructor/refund-requests/{refundRequest}/reject', [PaymentController::class, 'rejectRefund'])->name('payments.refund-requests.reject');
 
+
+    Route::get('/instructor/my-courses', [CourseController::class, 'myCoursesInstructor'])
+        ->name('courses.my');
+
+    Route::get('/courses/create', [CourseController::class, 'create'])
+        ->name('courses.create');
+
+    Route::post('/courses/store', [CourseController::class, 'store'])
+        ->name('courses.store');
+
+    Route::get('/courses/{course}/content', [CourseController::class, 'content'])
+        ->name('courses.content');
+
+    // LESSON MATERIAL MANAGEMENT
+    Route::get('/lessons/{lesson}/edit-material', [CourseController::class, 'editMaterial'])
+        ->name('lessons.edit');
+
+    Route::post('/lessons/{lesson}/update-material', [CourseController::class, 'updateMaterial'])
+        ->name('lessons.update');
+
+    // QUIZ BUILDER FOR EACH LESSON
+    Route::get('/lessons/{lesson}/quiz', [CourseController::class, 'quizEditor'])
+        ->name('lessons.quiz.editor');
+
+    Route::post('/lessons/{lesson}/quiz/store', [CourseController::class, 'quizStore'])
+        ->name('lessons.quiz.store');
 });
 
-// This must come last to avoid catching /courses/create as a course ID
+// Course Detail (before enrollment)
 Route::get('/courses/{course}', [CourseController::class, 'show'])->name('courses.show');
+
+// =============================
+// STUDENT ROUTES
+// =============================
+Route::middleware(['auth', 'student'])->group(function () {
+
+    Route::get('/student/my-courses', [CourseController::class, 'myCoursesStudent'])
+        ->name('student.mycourses');
+
+    Route::get('/quiz/{module}/take', [CourseController::class, 'quizTake'])
+        ->name('quiz.take');
+
+    Route::post('/quiz/{module}/submit', [CourseController::class, 'quizSubmit'])
+        ->name('quiz.submit');
+});
+
+
 
 // Stripe webhook (must be outside auth middleware and CSRF protection)
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])
