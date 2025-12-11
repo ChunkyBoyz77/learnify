@@ -45,11 +45,17 @@
                                   class="w-full border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500 dark:bg-gray-700 dark:text-gray-200">{{ old('comments', $feedback->comments) }}</textarea>
                     </div>
 
-                    <!-- Submit Button -->
                     <div class="flex justify-end">
+                        <!-- Cancel Button -->
+                        <a href="{{ route('feedbacks.show', $feedback->id ?? 0) ?? route('feedbacks.index') }}"
+                           class="inline-flex items-center px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all mr-4">
+                            Cancel
+                        </a>
+
+                        <!-- Submit Button -->
                         <button type="submit"
                                 class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all">
-                            Update Feedback
+                            Update
                         </button>
                     </div>
                 </form>

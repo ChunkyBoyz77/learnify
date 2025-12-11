@@ -51,17 +51,20 @@
                     </div>
 
                     <!-- Submit Button -->
-                    <div class="flex justify-end">
-                        <button type="submit"
-                                class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M12 4v16m8-8H4"/>
-                            </svg>
-                            Submit Feedback
-                        </button>
+                    <div class="flex justify-between mt-6">
+                    <!-- Cancel Button -->
+                    <a href="{{ route('feedbacks.index') }}"
+                    class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all">
+                        Cancel
+                    </a>
+
+                    <!-- Submit Button -->
+                    <button type="submit"
+                            class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all">
+                        Submit
+                    </button>
                     </div>
-                </form>
+            </form>
             </div>
         </div>
     </div>
