@@ -148,8 +148,12 @@
                                     </label>
                                     <textarea id="approve_response" name="instructor_response" rows="3" placeholder="Optional notes about the approval..." class="block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-green-500 dark:focus:border-green-600 focus:ring-green-500 dark:focus:ring-green-600 rounded-md shadow-sm"></textarea>
                                 </div>
-                                <button type="submit" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors">
-                                    Approve Refund
+                                <button type="submit" 
+                                        style="background-color: #16a34a !important; color: #ffffff !important;" 
+                                        class="w-full px-4 py-2 font-semibold rounded-lg transition-all hover:bg-green-700 hover:shadow-lg"
+                                        onmouseover="this.style.backgroundColor='#15803d'" 
+                                        onmouseout="this.style.backgroundColor='#16a34a'">
+                                    <span style="color: #ffffff !important;">Approve Refund</span>
                                 </button>
                             </form>
                         </div>

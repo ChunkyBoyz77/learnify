@@ -8,25 +8,21 @@
                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">View all payments made by students for your courses</p>
             </div>
             <div class="flex items-center space-x-3">
-                <a href="{{ route('payments.refund-requests.index') }}" class="inline-flex items-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all">
+                <a href="{{ route('payments.refund-requests.index') }}" 
+                   style="background: linear-gradient(to right, #ea580c, #dc2626);" 
+                   class="inline-flex items-center px-4 py-2 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all hover:opacity-90">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
-                    Refund Requests
+                    <span class="text-white">Refund Requests</span>
                     @php
                         $pendingRefunds = \App\Models\RefundRequest::whereIn('course_id', Auth::user()->courses()->pluck('id'))
                             ->where('status', 'pending')
                             ->count();
                     @endphp
                     @if($pendingRefunds > 0)
-                        <span class="ml-2 px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full">{{ $pendingRefunds }}</span>
+                        <span class="ml-2 px-2 py-0.5 text-xs font-bold bg-white text-orange-600 rounded-full">{{ $pendingRefunds }}</span>
                     @endif
-                </a>
-                <a href="{{ route('payments.create') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                    </svg>
-                    Create Payment
                 </a>
                 <a href="{{ route('instructor.dashboard') }}" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

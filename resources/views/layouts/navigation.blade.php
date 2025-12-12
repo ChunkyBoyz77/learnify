@@ -112,15 +112,19 @@
                             <x-slot name="content">
 
                                 <!-- FIXED COLORS HERE -->
-                                <x-dropdown-link :href="route('payments.history')"
-                                    class="text-gray-700 dark:text-gray-300 hover:bg-teal-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white">
-                                    {{ __('Payment History') }}
-                                </x-dropdown-link>
-
                                 @if(Auth::user()->role === 'instructor')
+                                    <x-dropdown-link :href="route('instructor.payments.index')"
+                                        class="text-gray-700 dark:text-gray-300 hover:bg-teal-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white">
+                                        {{ __('Course Payments') }}
+                                    </x-dropdown-link>
                                     <x-dropdown-link :href="route('security.metrics.index')"
                                         class="text-gray-700 dark:text-gray-300 hover:bg-teal-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white">
                                         {{ __('Security Metrics') }}
+                                    </x-dropdown-link>
+                                @else
+                                    <x-dropdown-link :href="route('payments.history')"
+                                        class="text-gray-700 dark:text-gray-300 hover:bg-teal-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white">
+                                        {{ __('Payment History') }}
                                     </x-dropdown-link>
                                 @endif
 
@@ -210,13 +214,16 @@
                     {{ __('My Feedbacks') }}
                 </x-responsive-nav-link>
 
-                <x-responsive-nav-link :href="route('payments.history')" :active="request()->routeIs('payments.history')">
-                    {{ __('Payment History') }}
-                </x-responsive-nav-link>
-
                 @if(Auth::user()->role === 'instructor')
+                    <x-responsive-nav-link :href="route('instructor.payments.index')" :active="request()->routeIs('instructor.payments.*')">
+                        {{ __('Course Payments') }}
+                    </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('security.metrics.index')" :active="request()->routeIs('security.*')">
                         {{ __('Security Metrics') }}
+                    </x-responsive-nav-link>
+                @else
+                    <x-responsive-nav-link :href="route('payments.history')" :active="request()->routeIs('payments.history')">
+                        {{ __('Payment History') }}
                     </x-responsive-nav-link>
                 @endif
 
