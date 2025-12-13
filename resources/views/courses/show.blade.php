@@ -1,9 +1,24 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ $course->title }}
-        </h2>
+        <div class="flex items-center gap-4">
+            {{-- Back Button --}}
+            <a href="{{ route('courses.index') }}"
+            class="flex items-center gap-2 text-gray-600 dark:text-gray-300
+                    hover:text-teal-600 dark:hover:text-teal-400 transition">
+
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a>
+
+            {{-- Page Title --}}
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                {{ $course->title }}
+            </h2>
+        </div>
     </x-slot>
+
 
     <div class="py-10">
         <div class="max-w-7xl mx-auto px-4">
@@ -43,17 +58,22 @@
                         {{ Str::limit($course->description, 180) }}
                     </p>
 
+                    {{-- PRICE + ENROLL --}}
                     <div class="flex flex-wrap items-center gap-4 mt-4">
+
                         <span class="text-3xl font-bold text-teal-300">
                             RM {{ number_format($course->price, 2) }}
                         </span>
 
                         @auth
+                            {{-- OWNER (INSTRUCTOR OF THIS COURSE) --}}
                             @if(auth()->id() === $course->instructor_id)
                                 <span class="px-6 py-3 bg-gray-500/80 rounded-lg font-semibold cursor-not-allowed">
                                     You are the instructor
                                 </span>
-                            @elseif(auth()->user()->role === 'student')
+
+                            {{-- ANY OTHER USER (STUDENT OR INSTRUCTOR) --}}
+                            @else
                                 @if($isEnrolled)
                                     <span class="px-6 py-3 bg-green-600 rounded-lg font-semibold shadow">
                                         ✓ Enrolled
@@ -86,7 +106,7 @@
                     {{-- ABOUT --}}
                     <div class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700
                                 rounded-2xl shadow-xl p-6 border-l-8 border-teal-500">
-                        <h3 class="text-xl font-extrabold text-teal-700 dark:text-teal-300 mb-3 flex items-center gap-2">
+                        <h3 class="text-xl font-extrabold text-teal-700 dark:text-teal-300 mb-3">
                             📘 About This Course
                         </h3>
                         <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
@@ -98,7 +118,7 @@
                     @if($course->what_you_will_learn)
                         <div class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700
                                     rounded-2xl shadow-xl p-6 border-l-8 border-cyan-500">
-                            <h3 class="text-xl font-extrabold text-cyan-700 dark:text-cyan-300 mb-3 flex items-center gap-2">
+                            <h3 class="text-xl font-extrabold text-cyan-700 dark:text-cyan-300 mb-3">
                                 🎓 What You Will Learn
                             </h3>
                             <p class="text-gray-700 dark:text-gray-300">
@@ -110,7 +130,7 @@
                     {{-- LESSONS --}}
                     <div class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700
                                 rounded-2xl shadow-xl p-6 border-l-8 border-indigo-500">
-                        <h3 class="text-xl font-extrabold text-indigo-700 dark:text-indigo-300 mb-4 flex items-center gap-2">
+                        <h3 class="text-xl font-extrabold text-indigo-700 dark:text-indigo-300 mb-4">
                             📚 Course Lessons
                         </h3>
 
@@ -121,8 +141,7 @@
                         @if($lessons->count())
                             <ul class="space-y-3">
                                 @foreach($lessons as $lesson)
-                                    <li class="p-4 rounded-xl bg-gray-100 dark:bg-gray-700
-                                               border border-gray-300 dark:border-gray-600">
+                                    <li class="p-4 rounded-xl bg-gray-100 dark:bg-gray-700">
                                         <span class="font-semibold text-indigo-600">
                                             Lesson {{ $lesson->order_number }}:
                                         </span>
@@ -138,28 +157,23 @@
                     {{-- FEEDBACK (DUMMY) --}}
                     <div class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700
                                 rounded-2xl shadow-xl p-6 border-l-8 border-amber-500">
-                        <h3 class="text-xl font-extrabold text-amber-700 dark:text-amber-300 mb-4 flex items-center gap-2">
+                        <h3 class="text-xl font-extrabold text-amber-700 dark:text-amber-300 mb-4">
                             ⭐ Student Feedback
                         </h3>
 
                         <div class="space-y-4">
                             <div class="p-4 bg-gray-100 dark:bg-gray-700 rounded-xl">
-                                <p class="font-semibold">⭐⭐⭐⭐⭐</p>
-                                <p class="text-gray-700 dark:text-gray-300">
-                                    Great course! Very easy to understand and well structured.
-                                </p>
+                                ⭐⭐⭐⭐⭐  
+                                <p>Great course! Very easy to understand.</p>
                             </div>
-
                             <div class="p-4 bg-gray-100 dark:bg-gray-700 rounded-xl">
-                                <p class="font-semibold">⭐⭐⭐⭐</p>
-                                <p class="text-gray-700 dark:text-gray-300">
-                                    Helpful content, especially the practical examples.
-                                </p>
+                                ⭐⭐⭐⭐  
+                                <p>Helpful content and clear explanation.</p>
                             </div>
                         </div>
 
-                        <p class="mt-4 text-sm text-gray-500 italic">
-                            *Feedback module will be integrated later.
+                        <p class="mt-4 text-sm italic text-gray-500">
+                            *Feedback module will be integrated later.*
                         </p>
                     </div>
                 </div>
@@ -170,52 +184,23 @@
                     {{-- INSTRUCTOR --}}
                     <div class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700
                                 rounded-2xl shadow-xl p-6 border-l-8 border-purple-500">
-                        <h4 class="text-lg font-extrabold text-purple-700 dark:text-purple-300 mb-2 flex items-center gap-2">
+                        <h4 class="text-lg font-extrabold text-purple-700 dark:text-purple-300 mb-2">
                             👨‍🏫 Instructor
                         </h4>
-                        <p class="text-gray-700 dark:text-gray-300 font-semibold">
-                            {{ $course->instructor->name }}
-                        </p>
+                        <p class="font-semibold">{{ $course->instructor->name }}</p>
                     </div>
 
-                    {{-- COURSE INFO (UNCHANGED – ALREADY PRETTY) --}}
-                    <div class="relative bg-gradient-to-br from-teal-50 to-cyan-50 
-                                dark:from-gray-800 dark:to-gray-700
+                    {{-- COURSE INFO --}}
+                    <div class="bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-gray-800 dark:to-gray-700
                                 rounded-2xl shadow-xl p-6 border-l-8 border-teal-500">
-
-                        <h4 class="text-lg font-extrabold text-teal-700 dark:text-teal-300 mb-4 flex items-center gap-2">
+                        <h4 class="text-lg font-extrabold text-teal-700 dark:text-teal-300 mb-4">
                             📄 Course Information
                         </h4>
 
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-3">
-                                <span class="w-10 h-10 flex items-center justify-center rounded-full bg-teal-100 text-teal-600">🎯</span>
-                                <div>
-                                    <p class="text-sm text-gray-500">Level</p>
-                                    <span class="px-3 py-1 bg-teal-600 text-white rounded-full text-sm font-semibold">
-                                        {{ $course->level ?? 'N/A' }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-3">
-                                <span class="w-10 h-10 flex items-center justify-center rounded-full bg-cyan-100 text-cyan-600">⏱️</span>
-                                <div>
-                                    <p class="text-sm text-gray-500">Duration</p>
-                                    <p class="font-semibold">{{ $course->duration ?? 'N/A' }}</p>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-3">
-                                <span class="w-10 h-10 flex items-center justify-center rounded-full bg-purple-100 text-purple-600">📝</span>
-                                <div>
-                                    <p class="text-sm text-gray-500">Assessment</p>
-                                    <p class="font-semibold">{{ $course->assessment_info ?? 'N/A' }}</p>
-                                </div>
-                            </div>
-                        </div>
+                        <p><strong>Level:</strong> {{ $course->level ?? 'N/A' }}</p>
+                        <p><strong>Duration:</strong> {{ $course->duration ?? 'N/A' }}</p>
+                        <p><strong>Assessment:</strong> {{ $course->assessment_info ?? 'N/A' }}</p>
                     </div>
-
                 </div>
             </div>
         </div>
