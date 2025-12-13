@@ -13,61 +13,6 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
-    <!-- Additional Styles to Ensure Buttons are Always Visible -->
-    <style>
-        /* Force ALL buttons and links to be visible always */
-        header nav a,
-        header nav a[href],
-        header nav a[href*="login"],
-        header nav a[href*="register"],
-        form button,
-        form button[type="submit"],
-        button[type="submit"] {
-            display: inline-block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-        
-        /* Sign Up button - always visible with blue background */
-        header nav a[href*="register"],
-        a.bg-blue-600 {
-            background-color: #2563eb !important;
-            color: #ffffff !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-            display: inline-block !important;
-            border: none !important;
-        }
-        
-        /* Log In link - always visible */
-        header nav a[href*="login"] {
-            color: #374151 !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-            display: inline-block !important;
-        }
-        
-        /* Form submit button - always visible */
-        form button[type="submit"],
-        button[type="submit"] {
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            background-color: #2563eb !important;
-            color: #ffffff !important;
-            cursor: pointer !important;
-        }
-        
-        /* Override ANY opacity or visibility rules */
-        header nav a:not(:hover),
-        header nav a:hover,
-        form button:not(:hover),
-        form button:hover {
-            opacity: 1 !important;
-            visibility: visible !important;
-        }
-    </style>
 </head>
 <body class="bg-white min-h-screen">
     <!-- Header -->
@@ -84,9 +29,9 @@
 
             <!-- Auth Buttons -->
             <div class="flex items-center space-x-3 sm:space-x-4">
-                <a href="{{ route('login') }}" style="display: inline-block !important; visibility: visible !important; opacity: 1 !important; color: #374151 !important; font-weight: 500 !important; font-size: 1rem !important; text-decoration: none !important; padding: 0.5rem 1rem !important;">Log In</a>
+                <a href="{{ route('login') }}" class="inline-block text-gray-700 hover:text-gray-900 font-medium text-base px-4 py-2 transition-colors">Log In</a>
                 @if (Route::has('register'))
-                    <a href="{{ route('register') }}" style="display: inline-block !important; visibility: visible !important; opacity: 1 !important; background-color: #2563eb !important; color: #ffffff !important; padding: 0.625rem 1.25rem !important; border-radius: 0.5rem !important; font-weight: 500 !important; font-size: 1rem !important; text-decoration: none !important; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;">Sign Up</a>
+                    <a href="{{ route('register') }}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium text-base px-5 py-2.5 rounded-lg shadow-sm transition-colors">Sign Up</a>
                 @endif
             </div>
         </nav>
@@ -163,7 +108,7 @@
                     <!-- Log In Button -->
                     <button 
                         type="submit"
-                        style="display: block !important; visibility: visible !important; opacity: 1 !important; width: 100% !important; background-color: #2563eb !important; color: #ffffff !important; padding: 0.75rem 1rem !important; border-radius: 0.5rem !important; font-weight: 500 !important; font-size: 1rem !important; border: none !important; cursor: pointer !important; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important; margin-top: 1rem !important;"
+                        class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     >
                         Log In
                     </button>
@@ -192,45 +137,5 @@
             </div>
         </div>
     </main>
-    
-    <!-- Script to Force Buttons to be Visible -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Force header buttons to be visible
-            const headerLinks = document.querySelectorAll('header nav a');
-            headerLinks.forEach(function(link) {
-                link.style.display = 'inline-block';
-                link.style.visibility = 'visible';
-                link.style.opacity = '1';
-            });
-            
-            // Force form button to be visible
-            const submitButton = document.querySelector('form button[type="submit"]');
-            if (submitButton) {
-                submitButton.style.display = 'block';
-                submitButton.style.visibility = 'visible';
-                submitButton.style.opacity = '1';
-                submitButton.style.backgroundColor = '#2563eb';
-                submitButton.style.color = '#ffffff';
-            }
-        });
-        
-        // Also ensure visibility after page load
-        window.addEventListener('load', function() {
-            const headerLinks = document.querySelectorAll('header nav a');
-            headerLinks.forEach(function(link) {
-                link.style.display = 'inline-block';
-                link.style.visibility = 'visible';
-                link.style.opacity = '1';
-            });
-            
-            const submitButton = document.querySelector('form button[type="submit"]');
-            if (submitButton) {
-                submitButton.style.display = 'block';
-                submitButton.style.visibility = 'visible';
-                submitButton.style.opacity = '1';
-            }
-        });
-    </script>
 </body>
 </html>
