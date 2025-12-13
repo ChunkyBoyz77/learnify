@@ -20,7 +20,7 @@
                             Need a Refund?
                         </h3>
                         <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
-                            <p>You can request a refund for completed payments within 30 days of payment. Click the "Request Refund" button in the table below, or view payment details to submit a refund request.</p>
+                            <p>You can request a refund for completed payments if you haven't started taking quizzes for the course. Click the "Request Refund" button in the table below, or view payment details to submit a refund request.</p>
                         </div>
                     </div>
                 </div>

@@ -35,13 +35,6 @@
                         <p class="font-semibold text-gray-900 dark:text-gray-100">{{ $payment->paid_at ? $payment->paid_at->format('M d, Y') : $payment->created_at->format('M d, Y') }}</p>
                     </div>
                 </div>
-                @if($eligibility['days_remaining'] > 0)
-                    <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                        <p class="text-sm text-blue-800 dark:text-blue-200">
-                            <strong>Refund Window:</strong> You have {{ $eligibility['days_remaining'] }} day(s) remaining to request a refund.
-                        </p>
-                    </div>
-                @endif
             </div>
 
             <!-- Refund Policy Info -->
@@ -50,7 +43,7 @@
                 <ul class="space-y-2 text-sm text-yellow-800 dark:text-yellow-300">
                     <li class="flex items-start">
                         <span class="mr-2">✓</span>
-                        <span>Refund requests must be made within {{ $eligibility['days_remaining'] > 0 ? $eligibility['days_remaining'] : 30 }} days of payment completion.</span>
+                        <span>You cannot request a refund if you have started taking quizzes for this course.</span>
                     </li>
                     <li class="flex items-start">
                         <span class="mr-2">✓</span>
