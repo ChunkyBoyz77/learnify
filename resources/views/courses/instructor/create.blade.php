@@ -82,21 +82,34 @@
                     <!-- ================= RIGHT SIDE — ADD LESSONS ================= -->
                     <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-300">
 
-                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Add Lessons</h3>
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                            Add Lessons
+                        </h3>
 
-                        <!-- Dynamic Lesson Container -->
-                        <div id="lessons-container"></div>
+                        <!-- Default Lesson (Lesson 1 always visible) -->
+                        <div id="lessons-container">
+
+                            <div class="lesson-box mb-6 p-4 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300">
+                                <h4 class="font-semibold mb-3">Lesson 1</h4>
+
+                                <label class="block mb-1">Lesson Title</label>
+                                <input type="text" name="lessons[0][title]"
+                                    class="w-full mb-3 px-4 py-2 rounded-lg border-gray-300" required>
+                            </div>
+
+                        </div>
 
                         <!-- Add Lesson Button -->
                         <button type="button" onclick="addLesson()"
-                                class="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
+                            class="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
                             + Add Lesson
                         </button>
+
                     </div>
 
                 </div>
 
-                <!-- Submit Button -->
+                <!-- ✅ Submit Button (Create Course) -->
                 <div class="flex justify-end mt-10">
                     <button type="submit"
                             class="px-8 py-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 shadow-lg">
@@ -109,7 +122,7 @@
     </div>
 
     <script>
-        let lessonCount = 0;
+        let lessonCount = 1; // Already have Lesson 1
 
         function addLesson() {
             const index = lessonCount++;
@@ -117,7 +130,7 @@
             const container = document.getElementById('lessons-container');
 
             const lessonHTML = `
-                <div class="mb-6 p-4 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300">
+                <div class="lesson-box mb-6 p-4 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300">
                     <h4 class="font-semibold mb-3">Lesson ${index + 1}</h4>
 
                     <label class="block mb-1">Lesson Title</label>
@@ -129,4 +142,5 @@
             container.insertAdjacentHTML('beforeend', lessonHTML);
         }
     </script>
+
 </x-app-layout>

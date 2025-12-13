@@ -93,7 +93,7 @@
                                     @method('PATCH')
                                     <button type="submit"
                                             class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition">
-                                        Archive
+                                        Delete
                                     </button>
                                 </form>
                                 @endif

@@ -5,193 +5,219 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-10">
+        <div class="max-w-7xl mx-auto px-4">
 
             {{-- SUCCESS MESSAGE --}}
             @if (session('success'))
-                <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
-                    <span class="font-semibold">{{ session('success') }}</span>
+                <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
+                    {{ session('success') }}
                 </div>
             @endif
 
-            {{-- MAIN CARD --}}
-            <div class="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8 border border-teal-100 dark:border-gray-700">
+            {{-- ================= HERO IMAGE SECTION ================= --}}
+            <div class="relative rounded-3xl overflow-hidden shadow-2xl mb-12">
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-                    {{-- LEFT SIDE: IMAGE --}}
-                    <div>
-                        @if($course->image)
-                            <img src="{{ asset('storage/' . $course->image) }}"
-                                 alt="{{ $course->title }}"
-                                 class="w-full h-72 object-cover rounded-xl shadow-md">
-                        @else
-                            <div class="w-full h-72 rounded-xl bg-gradient-to-br from-teal-400 via-cyan-400 to-blue-400 flex items-center justify-center shadow-md">
-                                <svg class="w-24 h-24 text-white opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                </svg>
-                            </div>
-                        @endif
+                @if($course->image)
+                    <img src="{{ asset('storage/' . $course->image) }}"
+                         class="w-full h-[420px] object-cover">
+                @else
+                    <div class="w-full h-[420px] bg-gradient-to-br from-teal-500 via-cyan-500 to-blue-500
+                                flex items-center justify-center">
+                        <svg class="w-32 h-32 text-white opacity-80" fill="none"
+                             stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
                     </div>
+                @endif
 
-                    {{-- RIGHT SIDE: INFO --}}
-                    <div>
-                        <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                            {{ $course->title }}
-                        </h1>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
 
-                        {{-- PRICE --}}
-                        <div class="mb-4">
-                            <span class="text-4xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 text-transparent bg-clip-text">
-                                ${{ number_format($course->price, 2) }}
-                            </span>
-                        </div>
+                <div class="absolute bottom-0 left-0 right-0 p-8 text-white">
+                    <h1 class="text-4xl font-extrabold mb-2 drop-shadow">
+                        {{ $course->title }}
+                    </h1>
 
-                        {{-- DESCRIPTION --}}
-                        <p class="text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed mb-6">
-                            {{ $course->description }}
-                        </p>
+                    <p class="text-gray-200 max-w-3xl mb-4">
+                        {{ Str::limit($course->description, 180) }}
+                    </p>
 
-                        {{-- WHAT YOU WILL LEARN --}}
-                        @if($course->what_you_will_learn)
-                            <div class="mb-6">
-                                <h3 class="text-lg font-semibold text-teal-600 dark:text-teal-400 mb-2">
-                                    What You Will Learn
-                                </h3>
-                                <p class="text-gray-700 dark:text-gray-300 whitespace-pre-line">
-                                    {{ $course->what_you_will_learn }}
-                                </p>
-                            </div>
-                        @endif
+                    <div class="flex flex-wrap items-center gap-4 mt-4">
+                        <span class="text-3xl font-bold text-teal-300">
+                            RM {{ number_format($course->price, 2) }}
+                        </span>
 
-                        {{-- SKILLS GAINED --}}
-                        @if($course->skills_gain)
-                            <div class="mb-6">
-                                <h3 class="text-lg font-semibold text-cyan-600 dark:text-cyan-400 mb-2">
-                                    Skills You Will Gain
-                                </h3>
-                                <p class="text-gray-700 dark:text-gray-300 whitespace-pre-line">
-                                    {{ $course->skills_gain }}
-                                </p>
-                            </div>
-                        @endif
-
-                        {{-- NEW: ASSESSMENT INFO --}}
-                        @if($course->assessment_info)
-                            <div class="mb-6">
-                                <h3 class="text-lg font-semibold text-purple-600 dark:text-purple-400 mb-2">
-                                    Assessment Information
-                                </h3>
-                                <p class="text-gray-700 dark:text-gray-300 whitespace-pre-line">
-                                    {{ $course->assessment_info }}
-                                </p>
-                            </div>
-                        @endif
-
-                        {{-- NEW: DURATION --}}
-                        @if($course->duration)
-                            <div class="mb-4">
-                                <h3 class="text-md font-semibold text-indigo-600 dark:text-indigo-400 mb-1">
-                                    Duration
-                                </h3>
-                                <p class="text-gray-700 dark:text-gray-300">
-                                    {{ $course->duration }}
-                                </p>
-                            </div>
-                        @endif
-
-                        {{-- NEW: LEVEL --}}
-                        @if($course->level)
-                            <div class="mb-8">
-                                <h3 class="text-md font-semibold text-amber-600 dark:text-amber-400 mb-1">
-                                    Difficulty Level
-                                </h3>
-                                <span class="px-3 py-1 bg-amber-100 dark:bg-amber-700 text-amber-700 dark:text-amber-200 rounded-full text-sm font-semibold">
-                                    {{ $course->level }}
+                        @auth
+                            @if(auth()->id() === $course->instructor_id)
+                                <span class="px-6 py-3 bg-gray-500/80 rounded-lg font-semibold cursor-not-allowed">
+                                    You are the instructor
                                 </span>
-                            </div>
-                        @endif
-
-                        {{-- NEW: LESSON LIST --}}
-                        <div class="mt-8">
-                            <h3 class="text-xl font-bold text-gray-900 dark:text-gray-200 mb-3">
-                                Course Lessons
-                            </h3>
-
-                            @php
-                                $lessons = $course->lessons()->orderBy('order_number')->get();
-                            @endphp
-
-                            @if($lessons->count() > 0)
-                                <ul class="space-y-2">
-                                    @foreach($lessons as $lesson)
-                                        <li class="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600">
-                                            <span class="font-semibold text-teal-700 dark:text-teal-300">
-                                                Lesson {{ $lesson->order_number }}:
-                                            </span>
-                                            <span class="text-gray-800 dark:text-gray-200">
-                                                {{ $lesson->title }}
-                                            </span>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            @else
-                                <p class="text-gray-500 dark:text-gray-400">No lessons added yet.</p>
-                            @endif
-                        </div>
-
-                        {{-- ACTION BUTTONS --}}
-                        <div class="mt-6 space-y-4">
-
-                            @auth
-
-                                {{-- INSTRUCTOR --}}
-                                @if(auth()->user()->role === 'instructor' && auth()->id() === $course->instructor_id)
-                                    <div class="bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-700 px-4 py-4 rounded-xl mb-4">
-                                        <p class="font-semibold text-teal-700 dark:text-teal-300">
-                                            You are the instructor of this course.
-                                        </p>
-                                    </div>
-
-                                {{-- STUDENT --}}
-                                @elseif(auth()->user()->role === 'student')
-
-                                    @if($isEnrolled)
-                                        <div class="bg-green-100 dark:bg-green-900 border border-green-400 text-green-800 dark:text-green-300 px-4 py-3 rounded-lg mb-4">
-                                            ✓ You are enrolled in this course.
-                                        </div>
-
-                                        <a href="{{ route('enrollments.index') }}"
-                                           class="w-full block text-center bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow transition">
-                                            Go to My Courses
-                                        </a>
-
-                                    @else
-                                        <a href="{{ route('payments.checkout', $course) }}"
-                                           class="w-full block text-center bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-bold py-3 rounded-lg shadow-lg transition">
-                                            🎓 Enroll Now — ${{ number_format($course->price, 2) }}
-                                        </a>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Secure Stripe Payment</p>
-                                    @endif
-
+                            @elseif(auth()->user()->role === 'student')
+                                @if($isEnrolled)
+                                    <span class="px-6 py-3 bg-green-600 rounded-lg font-semibold shadow">
+                                        ✓ Enrolled
+                                    </span>
+                                @else
+                                    <a href="{{ route('payments.checkout', $course) }}"
+                                       class="px-8 py-3 bg-gradient-to-r from-teal-500 to-cyan-500
+                                              hover:from-teal-600 hover:to-cyan-600
+                                              rounded-lg font-bold shadow-lg transition transform hover:scale-105">
+                                        Enroll Now
+                                    </a>
                                 @endif
-
-                            @else
-                                {{-- GUEST --}}
-                                <a href="{{ route('login') }}"
-                                   class="w-full block text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 rounded-lg shadow transition">
-                                    Login to Enroll
-                                </a>
-                            @endauth
-
-                        </div>
-
+                            @endif
+                        @else
+                            <a href="{{ route('login') }}"
+                               class="px-8 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg font-bold shadow">
+                                Login to Enroll
+                            </a>
+                        @endauth
                     </div>
                 </div>
             </div>
 
+            {{-- ================= MAIN CONTENT ================= --}}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+
+                {{-- LEFT CONTENT --}}
+                <div class="lg:col-span-2 space-y-8">
+
+                    {{-- ABOUT --}}
+                    <div class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700
+                                rounded-2xl shadow-xl p-6 border-l-8 border-teal-500">
+                        <h3 class="text-xl font-extrabold text-teal-700 dark:text-teal-300 mb-3 flex items-center gap-2">
+                            📘 About This Course
+                        </h3>
+                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
+                            {{ $course->description }}
+                        </p>
+                    </div>
+
+                    {{-- WHAT YOU WILL LEARN --}}
+                    @if($course->what_you_will_learn)
+                        <div class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700
+                                    rounded-2xl shadow-xl p-6 border-l-8 border-cyan-500">
+                            <h3 class="text-xl font-extrabold text-cyan-700 dark:text-cyan-300 mb-3 flex items-center gap-2">
+                                🎓 What You Will Learn
+                            </h3>
+                            <p class="text-gray-700 dark:text-gray-300">
+                                {{ $course->what_you_will_learn }}
+                            </p>
+                        </div>
+                    @endif
+
+                    {{-- LESSONS --}}
+                    <div class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700
+                                rounded-2xl shadow-xl p-6 border-l-8 border-indigo-500">
+                        <h3 class="text-xl font-extrabold text-indigo-700 dark:text-indigo-300 mb-4 flex items-center gap-2">
+                            📚 Course Lessons
+                        </h3>
+
+                        @php
+                            $lessons = $course->lessons()->orderBy('order_number')->get();
+                        @endphp
+
+                        @if($lessons->count())
+                            <ul class="space-y-3">
+                                @foreach($lessons as $lesson)
+                                    <li class="p-4 rounded-xl bg-gray-100 dark:bg-gray-700
+                                               border border-gray-300 dark:border-gray-600">
+                                        <span class="font-semibold text-indigo-600">
+                                            Lesson {{ $lesson->order_number }}:
+                                        </span>
+                                        {{ $lesson->title }}
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="text-gray-500 italic">No lessons added yet.</p>
+                        @endif
+                    </div>
+
+                    {{-- FEEDBACK (DUMMY) --}}
+                    <div class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700
+                                rounded-2xl shadow-xl p-6 border-l-8 border-amber-500">
+                        <h3 class="text-xl font-extrabold text-amber-700 dark:text-amber-300 mb-4 flex items-center gap-2">
+                            ⭐ Student Feedback
+                        </h3>
+
+                        <div class="space-y-4">
+                            <div class="p-4 bg-gray-100 dark:bg-gray-700 rounded-xl">
+                                <p class="font-semibold">⭐⭐⭐⭐⭐</p>
+                                <p class="text-gray-700 dark:text-gray-300">
+                                    Great course! Very easy to understand and well structured.
+                                </p>
+                            </div>
+
+                            <div class="p-4 bg-gray-100 dark:bg-gray-700 rounded-xl">
+                                <p class="font-semibold">⭐⭐⭐⭐</p>
+                                <p class="text-gray-700 dark:text-gray-300">
+                                    Helpful content, especially the practical examples.
+                                </p>
+                            </div>
+                        </div>
+
+                        <p class="mt-4 text-sm text-gray-500 italic">
+                            *Feedback module will be integrated later.
+                        </p>
+                    </div>
+                </div>
+
+                {{-- RIGHT SIDEBAR --}}
+                <div class="space-y-8">
+
+                    {{-- INSTRUCTOR --}}
+                    <div class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700
+                                rounded-2xl shadow-xl p-6 border-l-8 border-purple-500">
+                        <h4 class="text-lg font-extrabold text-purple-700 dark:text-purple-300 mb-2 flex items-center gap-2">
+                            👨‍🏫 Instructor
+                        </h4>
+                        <p class="text-gray-700 dark:text-gray-300 font-semibold">
+                            {{ $course->instructor->name }}
+                        </p>
+                    </div>
+
+                    {{-- COURSE INFO (UNCHANGED – ALREADY PRETTY) --}}
+                    <div class="relative bg-gradient-to-br from-teal-50 to-cyan-50 
+                                dark:from-gray-800 dark:to-gray-700
+                                rounded-2xl shadow-xl p-6 border-l-8 border-teal-500">
+
+                        <h4 class="text-lg font-extrabold text-teal-700 dark:text-teal-300 mb-4 flex items-center gap-2">
+                            📄 Course Information
+                        </h4>
+
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3">
+                                <span class="w-10 h-10 flex items-center justify-center rounded-full bg-teal-100 text-teal-600">🎯</span>
+                                <div>
+                                    <p class="text-sm text-gray-500">Level</p>
+                                    <span class="px-3 py-1 bg-teal-600 text-white rounded-full text-sm font-semibold">
+                                        {{ $course->level ?? 'N/A' }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <span class="w-10 h-10 flex items-center justify-center rounded-full bg-cyan-100 text-cyan-600">⏱️</span>
+                                <div>
+                                    <p class="text-sm text-gray-500">Duration</p>
+                                    <p class="font-semibold">{{ $course->duration ?? 'N/A' }}</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <span class="w-10 h-10 flex items-center justify-center rounded-full bg-purple-100 text-purple-600">📝</span>
+                                <div>
+                                    <p class="text-sm text-gray-500">Assessment</p>
+                                    <p class="font-semibold">{{ $course->assessment_info ?? 'N/A' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
         </div>
     </div>
 </x-app-layout>
