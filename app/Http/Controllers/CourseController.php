@@ -21,8 +21,10 @@ class CourseController extends Controller
     {
         $search = $request->input('search');
 
-        $courses = Course::when($search, function ($query, $search) {
-                $query->where('title', 'like', "%{$search}%");
+        $courses = Course::query()
+            ->where('is_archived', false)   // ✅ Only show active courses
+            ->when($search, function ($query, $search) {
+                return $query->where('title', 'like', "%{$search}%");
             })
             ->latest()
             ->paginate(12);
@@ -310,4 +312,56 @@ class CourseController extends Controller
 
         return back()->with('success', "Your score: {$score} / {$questions->count()}");
     }
+
+
+    public function archive(Course $course)
+    {
+        if (auth()->id() !== $course->instructor_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $course->update([
+            'is_archived' => 1,
+        ]);
+
+        return redirect()->route('courses.my')
+            ->with('success', 'Course archived successfully.');
+    }
+
+    public function deleteMaterial(Material $material)
+    {
+        $lesson = $material->lesson;
+        $course = $lesson->course;
+
+        if (auth()->id() !== $course->instructor_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Delete file if stored locally
+        if (in_array($material->file_type, ['video', 'pdf'])) {
+            if (\Storage::disk('public')->exists($material->file_path)) {
+                \Storage::disk('public')->delete($material->file_path);
+            }
+        }
+
+        $material->delete();
+
+        return back()->with('success', 'Material deleted successfully.');
+    }
+
+    public function deleteQuestion(QuizQuestion $question)
+    {
+        $quiz = $question->quiz;
+        $lesson = $quiz->lesson;
+        $course = $lesson->course;
+
+        if (auth()->id() !== $course->instructor_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $question->delete();
+
+        return back()->with('success', 'Quiz question deleted.');
+    }
+
 }

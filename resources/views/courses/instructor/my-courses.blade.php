@@ -56,7 +56,14 @@
                                              shadow backdrop-blur">
                                     ${{ number_format($course->price, 2) }}
                                 </span>
+
+                                @if($course->is_archived)
+                                    <span class="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                                        Archived
+                                    </span>
+                                @endif
                             </div>
+
 
                             {{-- BODY --}}
                             <div class="p-6">
@@ -76,8 +83,24 @@
                                           rounded-lg shadow-md hover:shadow-lg transition">
                                     View Course Content
                                 </a>
+
+                                {{-- ARCHIVE BUTTON --}}
+                                @if(!$course->is_archived)
+                                <form action="{{ route('courses.archive', $course->id) }}" method="POST"
+                                      class="mt-3"
+                                      onsubmit="return confirm('Archive this course? Students will still have access, but you can no longer edit it.')">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit"
+                                            class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition">
+                                        Archive
+                                    </button>
+                                </form>
+                                @endif
+
                             </div>
                         </div>
+
                     @endforeach
 
                 </div>
@@ -93,7 +116,7 @@
                                  viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                       d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                            </svg>
+                                </svg>
                         </div>
                         <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                             You haven't created any courses yet

@@ -47,6 +47,16 @@
                                     </li>
                                 @endforeach
                             </ul>
+
+                            {{-- Delete Question --}}
+                            <form action="{{ route('quiz.question.delete', $q->id) }}" method="POST"
+                                  onsubmit="return confirm('Delete this question?')" class="mt-2">
+                                @csrf
+                                @method('DELETE')
+                                <button class="text-red-600 hover:text-red-800 text-sm">
+                                    Delete Question
+                                </button>
+                            </form>
                         </div>
                     @endforeach
                 </div>

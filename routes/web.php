@@ -52,7 +52,14 @@ Route::middleware(['auth', 'instructor'])->group(function () {
     Route::put('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
 
     // DELETE
-    Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
+    Route::patch('/courses/{course}/archive', [CourseController::class, 'archive'])
+        ->name('courses.archive');
+
+    Route::delete('/materials/{material}/delete', [CourseController::class, 'deleteMaterial'])
+        ->name('materials.delete');
+
+    Route::delete('/quiz-question/{question}/delete', [CourseController::class, 'deleteQuestion'])
+        ->name('quiz.question.delete');
 
     // COURSE CONTENT
     Route::get('/courses/{course}/content', [CourseController::class, 'content'])->name('courses.content');

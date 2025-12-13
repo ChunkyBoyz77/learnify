@@ -50,55 +50,97 @@
                             $videoUrl  = $selectedLesson->materials->firstWhere('file_type', 'video_url');
                         @endphp
 
+                        <!-- ================= VIDEO (FILE) ================= -->
                         @if ($videoFile)
-                            <video controls class="w-full rounded-lg">
-                                <source src="{{ asset('storage/' . $videoFile->file_path) }}">
-                            </video>
+                            <div class="mb-2">
+                                <video controls class="w-full rounded-lg">
+                                    <source src="{{ asset('storage/' . $videoFile->file_path) }}">
+                                </video>
+
+                                <!-- DELETE BUTTON -->
+                                <form action="{{ route('materials.delete', $videoFile->id) }}" 
+                                      method="POST" class="mt-2">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">
+                                        Delete Video File
+                                    </button>
+                                </form>
+                            </div>
+
+                        <!-- ================= VIDEO (URL) ================= -->
                         @elseif ($videoUrl)
-                            <iframe src="{{ $videoUrl->file_path }}"
-                                    class="w-full h-64 rounded-lg border"
-                                    allowfullscreen></iframe>
+                            <div class="mb-2">
+                                <iframe src="{{ $videoUrl->file_path }}"
+                                        class="w-full h-64 rounded-lg border"
+                                        allowfullscreen></iframe>
+
+                                <!-- DELETE BUTTON -->
+                                <form action="{{ route('materials.delete', $videoUrl->id) }}" 
+                                      method="POST" class="mt-2">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">
+                                        Delete Video URL
+                                    </button>
+                                </form>
+                            </div>
+
                         @else
                             <p class="text-gray-600 italic">No video uploaded yet.</p>
                         @endif
 
-                        <!-- NOTES (PDF) -->
+
+                        <!-- ================= NOTES (PDF) ================= -->
                         @php
                             $pdf = $selectedLesson->materials->firstWhere('file_type', 'pdf');
                         @endphp
 
                         @if ($pdf)
-                            <a href="{{ asset('storage/' . $pdf->file_path) }}" target="_blank"
-                            class="text-blue-600 underline">
-                            Download Notes
-                            </a>
+                            <div class="mt-4">
+                                <a href="{{ asset('storage/' . $pdf->file_path) }}" 
+                                   target="_blank" class="text-blue-600 underline">
+                                    Download Notes
+                                </a>
+
+                                <!-- DELETE BUTTON -->
+                                <form action="{{ route('materials.delete', $pdf->id) }}" 
+                                      method="POST" class="mt-2">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">
+                                        Delete Notes
+                                    </button>
+                                </form>
+                            </div>
                         @else
                             <p class="text-gray-600 italic">No notes uploaded yet.</p>
                         @endif
 
-                        <!-- QUIZ SECTION -->
 
+                        <!-- QUIZ SECTION -->
                         @php
-                            $quiz = $selectedLesson->quiz; // Load quiz through relationship
+                            $quiz = $selectedLesson->quiz;
                         @endphp
 
-                        <div class="mb-6 p-4 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300">
+                        <div class="mt-6 p-4 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300">
                             <h4 class="font-semibold text-gray-800 dark:text-gray-200 mb-2">Quiz</h4>
 
                             @if ($quiz && $quiz->questions->count() > 0)
                                 <p class="text-green-700 dark:text-green-400">Quiz available</p>
                                 <a href="{{ route('lessons.quiz.editor', $selectedLesson->id) }}"
-                                class="underline text-blue-600 dark:text-blue-400">
+                                   class="underline text-blue-600 dark:text-blue-400">
                                     Manage Quiz
                                 </a>
                             @else
-                                <p class="text-gray-600 dark:text-gray-300 italic">No quiz added yet.</p>
+                                <p class="text-gray-600 italic">No quiz added yet.</p>
                                 <a href="{{ route('lessons.quiz.editor', $selectedLesson->id) }}"
-                                class="underline text-blue-600 dark:text-blue-400">
+                                   class="underline text-blue-600 dark:text-blue-400">
                                     Add Quiz
                                 </a>
                             @endif
                         </div>
+
                     @endif
                 </div>
             </div>
