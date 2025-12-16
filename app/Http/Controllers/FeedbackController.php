@@ -5,56 +5,88 @@ namespace App\Http\Controllers;
 use App\Models\Feedback;
 use App\Models\Course;
 use Illuminate\Http\Request;
+use App\Models\User;
 
 class FeedbackController extends Controller
 {
     // List feedback
-    public function index()
+    public function index(Request $request)
     {
+        $query = Feedback::with(['user','course'])->latest();
+
+        // If the logged-in user is a student, restrict to their own feedback
         if (auth()->user()->role === 'student') {
-            // Student: only their own feedback
-            $feedback = Feedback::where('user_id', auth()->id())
-                                ->with('course')
-                                ->latest()
-                                ->paginate(10);
+            $query->where('user_id', auth()->id());
         } else {
-            // Instructor: feedback for their courses
-            $feedback = Feedback::whereHas('course', function($q) {
-                $q->where('instructor_id', auth()->id());
-            })->with('user','course')
-              ->latest()
-              ->paginate(10);
+            // Instructors can filter/search
+            if ($request->filled('keyword')) {
+                $query->where('comment', 'like', '%' . $request->keyword . '%');
+            }
+            if ($request->filled('course_id')) {
+                $query->where('course_id', $request->course_id);
+            }
+            if ($request->filled('student_id')) {
+                $query->where('user_id', $request->student_id);
+            }
+            if ($request->filled('rating')) {
+                $query->where('rating', $request->rating);
+            }
         }
 
-        return view('feedbacks.index', compact('feedback'));
+        $feedback = $query->paginate(10)->appends($request->query());
+
+        // Only load courses/students for instructors
+        $courses = [];
+        $students = [];
+        if (auth()->user()->role === 'instructor') {
+            $courses = Course::all();
+            $students = User::where('role', 'student')->get();
+        }
+
+        return view('feedbacks.index', compact('feedback','courses','students'));
     }
+
 
     // Show form to create feedback (students only)
     public function create()
     {
-        $courses = Course::all(); // or filter to enrolled courses
+        $user = auth()->user();
+
+        // Only fetch courses the student is enrolled in
+        $courses = $user->enrolledCourses()->get();
+
         return view('feedbacks.create', compact('courses'));
     }
+
 
     // Store feedback (students only)
     public function store(Request $request)
     {
+        $user = auth()->user();
+
+        // Validate that the course_id belongs to this student
+        if (!$user->enrolledCourses()->where('courses.id', $request->course_id)->exists()) {
+            return redirect()->route('feedbacks.index')
+                             ->with('error', 'You can only give feedback for courses you are enrolled in.');
+        }
+
         $request->validate([
             'course_id' => 'required|exists:courses,id',
             'rating'    => 'required|integer|min:1|max:5',
-            'comments'  => 'nullable|string',
+            'message'   => 'required|string|max:1000',
         ]);
 
         Feedback::create([
-            'course_id' => $request->course_id,
-            'user_id'   => auth()->id(), // ✅ correct usage
-            'rating'    => $request->rating,
-            'comments'  => $request->comments,
+            'user_id'  => $user->id,
+            'course_id'=> $request->course_id,
+            'rating'   => $request->rating,
+            'comment'  => $request->message,
+            'status'   => 'pending',
         ]);
 
-        return redirect()->route('courses.show', $request->course_id)
-                         ->with('success','Feedback submitted!');
+        return redirect()->route('feedbacks.index')->with('success', 'Feedback submitted successfully.');
     }
+
 
     // Show single feedback
     public function show(Feedback $feedback)
@@ -75,11 +107,11 @@ class FeedbackController extends Controller
         $this->authorize('update', $feedback);
 
         $request->validate([
-            'comments' => 'required|string|max:1000',
+            'comment' => 'required|string|max:1000',
             'rating'   => 'nullable|integer|min:1|max:5',
         ]);
 
-        $feedback->update($request->only('comments','rating'));
+        $feedback->update($request->only('comment','rating'));
 
         return redirect()->route('feedbacks.index')->with('success','Feedback updated!');
     }

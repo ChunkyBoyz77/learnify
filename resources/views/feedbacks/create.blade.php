@@ -16,12 +16,12 @@
                         <label for="course_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Course
                         </label>
-                        <select name="course_id" id="course_id" required
+                            <select name="course_id" id="course_id" required
                                 class="w-full border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500 dark:bg-gray-700 dark:text-gray-200">
-                            @foreach($courses as $course)
+                                @foreach($courses as $course)
                                 <option value="{{ $course->id }}">{{ $course->title }}</option>
-                            @endforeach
-                        </select>
+                                @endforeach
+                            </select>
                     </div>
 
                     <!-- Star Rating -->

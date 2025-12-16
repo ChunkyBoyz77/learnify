@@ -12,7 +12,7 @@ class Feedback extends Model
         'course_id',
         'user_id',
         'rating',
-        'comments',
+        'comment',
     ];
 
     public function course()

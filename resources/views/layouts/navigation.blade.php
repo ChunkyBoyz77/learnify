@@ -39,7 +39,7 @@
                         class="px-4 py-2 rounded-lg transition-all hover:bg-teal-100 dark:hover:bg-gray-700">
                         <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0
                                 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
                         {{ __('Dashboard') }}
@@ -51,8 +51,8 @@
                         <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477
-                                5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 
-                                3.332.477 4.5 1.253v13C19.832 18.477 
+                                5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0
+                                3.332.477 4.5 1.253v13C19.832 18.477
                                 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                         </svg>
                         {{ __('Explore Courses') }}
@@ -65,23 +65,23 @@
                             class="px-4 py-2 rounded-lg transition-all hover:bg-teal-100 dark:hover:bg-gray-700">
                             <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12h6m-6 4h6m2 5H7a2 2 
-                                    0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 
-                                    01.707.293l5.414 5.414a1 1 0 
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2
+                                    0 01-2-2V5a2 2 0 012-2h5.586a1 1 0
+                                    01.707.293l5.414 5.414a1 1 0
                                     01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                             {{ __('My Courses') }}
                         </x-nav-link>
 
-                        <!-- My Feedbacks -->
+                        <!-- Feedbacks -->
                         <x-nav-link :href="route('feedbacks.index')" :active="request()->routeIs('feedbacks.*')"
                             class="px-4 py-2 rounded-lg transition-all hover:bg-teal-100 dark:hover:bg-gray-700">
                             <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 
+                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042
                                     3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>
-                            {{ __('My Feedbacks') }}
+                            {{ __('Feedbacks') }}
                         </x-nav-link>
 
                         <!-- Payments Dropdown (Desktop) -->
@@ -91,19 +91,19 @@
                                     class="inline-flex items-center px-4 py-2 rounded-lg transition-all hover:bg-teal-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
                                     <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 
-                                            00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 
-                                            0 002-2v-6a2 2 0 00-2-2H9a2 2 
-                                            0 00-2 2v6a2 2 0 002 2zm7-5a2 2 
+                                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0
+                                            00-2 2v6a2 2 0 002 2h2m2 4h10a2 2
+                                            0 002-2v-6a2 2 0 00-2-2H9a2 2
+                                            0 00-2 2v6a2 2 0 002 2zm7-5a2 2
                                             0 11-4 0 2 2 0 014 0z" />
                                     </svg>
                                     <span>{{ __('Payments') }}</span>
                                     <svg class="ml-1 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
-                                            d="M5.293 7.293a1 1 0 011.414 0L10 
-                                            10.586l3.293-3.293a1 1 0 
-                                            111.414 1.414l-4 4a1 1 0 
-                                            01-1.414 0l-4-4a1 1 0 
+                                            d="M5.293 7.293a1 1 0 011.414 0L10
+                                            10.586l3.293-3.293a1 1 0
+                                            111.414 1.414l-4 4a1 1 0
+                                            01-1.414 0l-4-4a1 1 0
                                             010-1.414z" />
                                     </svg>
                                 </button>
@@ -145,10 +145,10 @@
                             <div class="ms-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
-                                        d="M5.293 7.293a1 1 0 011.414 0L10 
-                                        10.586l3.293-3.293a1 1 0 
-                                        111.414 1.414l-4 4a1 1 0 
-                                        01-1.414 0l-4-4a1 1 0 
+                                        d="M5.293 7.293a1 1 0 011.414 0L10
+                                        10.586l3.293-3.293a1 1 0
+                                        111.414 1.414l-4 4a1 1 0
+                                        01-1.414 0l-4-4a1 1 0
                                         010-1.414z" />
                                 </svg>
                             </div>
@@ -211,7 +211,7 @@
                 </x-responsive-nav-link>
 
                 <x-responsive-nav-link :href="route('feedbacks.index')" :active="request()->routeIs('feedbacks.*')">
-                    {{ __('My Feedbacks') }}
+                    {{ __('Feedbacks') }}
                 </x-responsive-nav-link>
 
                 @if(Auth::user()->role === 'instructor')

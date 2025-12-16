@@ -64,6 +64,16 @@ class User extends Authenticatable
     }
 
     /**
+     * The courses that the user is enrolled in.
+     */
+    public function enrolledCourses()
+{
+    return $this->belongsToMany(\App\Models\Course::class, 'enrollments')
+                ->withPivot('status')
+                ->withTimestamps();
+}
+
+    /**
      * Get the payments for the user.
      */
     public function payments()
