@@ -364,4 +364,22 @@ class CourseController extends Controller
         return back()->with('success', 'Quiz question deleted.');
     }
 
+    public function guestSearch(Request $request)
+    {
+        $q = $request->q;
+
+        $courses = Course::with('instructor')
+            ->when($q, fn ($query) =>
+                $query->where('title', 'like', "%{$q}%")
+                    ->orWhere('description', 'like', "%{$q}%")
+            )
+            ->paginate(12);
+
+        return view('courses.guestpreview', compact('courses'));
+    }
+
+
+
+
+
 }

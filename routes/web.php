@@ -7,10 +7,11 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SecurityMetricsController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Controllers\CourseSearchController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth/login');
 });
 
 Route::get('/dashboard', function () {
@@ -161,5 +162,15 @@ Route::middleware(['auth', 'https.payments'])->group(function () {
     // Feedback routes
     Route::resource('feedbacks', FeedbackController::class);
 });
+
+//Guest Course Search
+Route::get('/courses', [CourseSearchController::class, 'index'])
+     ->name('courses.index');
+
+Route::get('/courses', [CourseController::class, 'guestSearch'])
+    ->name('courses.index');
+
+
+
 
 require __DIR__.'/auth.php';

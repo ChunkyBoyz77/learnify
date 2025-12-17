@@ -10,56 +10,42 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-white min-h-screen">
-    <!-- Header -->
-    <header class="w-full bg-white">
-        <nav class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-            <!-- Logo -->
-            <div class="flex items-center space-x-3 sm:space-x-4">
-                <x-application-logo class="w-12 h-12 sm:w-16 sm:h-16" />
-                <div>
-                    <div class="text-xl sm:text-2xl font-bold text-teal-600">LEARNIFY</div>
-                    <div class="text-xs sm:text-sm text-amber-600 font-medium">LEARN MORE. BE MORE</div>
-                </div>
-            </div>
+<body class="bg-white min-h-screen overflow-hidden">
+    {{-- HEADER --}}
+    @include('layouts.auth-header')
 
-            <!-- Auth Buttons -->
-            <div class="flex items-center space-x-3 sm:space-x-4">
-                <a href="{{ route('login') }}" class="inline-block text-gray-700 hover:text-gray-900 font-medium text-base px-4 py-2 transition-colors">Log In</a>
-                @if (Route::has('register'))
-                    <a href="{{ route('register') }}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium text-base px-5 py-2.5 rounded-lg shadow-sm transition-colors">Sign Up</a>
-                @endif
-            </div>
-        </nav>
-    </header>
+
 
     <!-- Main Content -->
-    <main class="flex flex-col lg:flex-row min-h-[calc(100vh-80px)]">
+    <main class="flex flex-col lg:flex-row h-[calc(100vh-96px)] overflow-hidden">
         <!-- Left Side - Illustration (60% width on desktop, full width on mobile) -->
-        <div class="w-full lg:w-[60%] bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 flex items-center justify-center p-6 sm:p-8 lg:p-12 order-2 lg:order-1">
-            <div class="w-full max-w-2xl flex items-center justify-center h-full">
+        <div class="w-full lg:w-[60%] bg-white flex items-center justify-center p-6 sm:p-8 lg:p-12 order-2 lg:order-1">
+            <div class="w-full max-w-3xl flex items-center justify-center h-full">
                 <img 
                     src="{{ asset('images/learning-illustration.png') }}?v={{ time() }}" 
                     alt="Online Learning Illustration" 
-                    class="w-full h-auto max-w-full object-contain mx-auto"
-                    style="max-height: 70vh; display: block;"
+                    class="w-full h-auto object-contain"
+                    style="max-height: 70vh;"
                 >
+
             </div>
         </div>
 
         <!-- Right Side - Login Form (40% width on desktop, full width on mobile) -->
-        <div class="w-full lg:w-[40%] flex items-center justify-center p-6 sm:p-8 lg:p-12 bg-white order-1 lg:order-2">
+        <div class="w-full lg:w-[40%] flex items-center justify-center p-6 sm:p-8 lg:p-12 lg:pr-60 bg-white order-1 lg:order-2 overflow-y-auto">
             <div class="w-full max-w-md">
                 <!-- Session Status -->
                 <x-auth-session-status class="mb-4" :status="session('status')" />
 
-                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">Log in with email</h1>
+                <h1 class="text-5xl font-bold text-gray-900 mb-6 sm:mb-8">Log in to continue your learning <br><span id="rotating-word">journey</span>.</h1>
 
-                <form method="POST" action="{{ route('login') }}" class="space-y-4">
+                <form method="POST" action="{{ route('login') }}" class="space-y-5">
                     @csrf
 
                     <!-- Email Address -->
@@ -73,13 +59,13 @@
                             autofocus 
                             autocomplete="username"
                             placeholder="Email"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-400 text-base"
+                            class="w-full px-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-400 text-base"
                         />
                         <x-input-error :messages="$errors->get('email')" class="mt-2" />
                     </div>
 
                     <!-- Password -->
-                    <div>
+                    <div class="relative">
                         <input 
                             id="password" 
                             type="password" 
@@ -87,8 +73,16 @@
                             required 
                             autocomplete="current-password"
                             placeholder="Password"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-400 text-base"
+                            class="w-full px-4 py-4 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-400 text-base"
                         />
+                        <button 
+                            type="button"
+                            id="togglePassword"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition"
+                            aria-label="Toggle password visibility"
+                        >
+                            <i id="eyeIcon" class="fa-solid fa-eye"></i>
+                        </button>
                         <x-input-error :messages="$errors->get('password')" class="mt-2" />
                     </div>
 
@@ -98,7 +92,7 @@
                             id="remember_me" 
                             type="checkbox" 
                             name="remember" 
-                            class="rounded border-gray-300 text-teal-600 focus:ring-teal-500 w-4 h-4"
+                            class="rounded border-gray-300 text-blur-600 focus:ring-blue-500 w-5 h-5"
                         >
                         <label for="remember_me" class="ml-2 text-sm text-gray-600">
                             Remember me
@@ -108,7 +102,7 @@
                     <!-- Log In Button -->
                     <button 
                         type="submit"
-                        class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        class="w-full mt-4 bg-white border border-gray-500 hover:bg-blue-600 text-black hover:text-white font-medium py-3 px-4 rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     >
                         Log In
                     </button>
@@ -138,4 +132,114 @@
         </div>
     </main>
 </body>
+
+<script>
+    //Typing Effect
+    const words = ['journey', 'adventure', 'quest', 'experience'];
+    let currentIndex = 0;
+    let currentText = '';
+    let isDeleting = false; // Fixed: was "isDeleteing"
+    const wordElement = document.getElementById('rotating-word');
+
+    function typeEffect() {
+        const currentWord = words[currentIndex];
+
+        if (isDeleting) {
+            currentText = currentWord.substring(0, currentText.length - 1);
+        } else {
+            currentText = currentWord.substring(0, currentText.length + 1);
+        }
+
+        wordElement.textContent = currentText; // Fixed: was "textContext"
+
+        let typeSpeed = isDeleting ? 50 : 100;
+        
+        if (!isDeleting && currentText === currentWord) {
+            typeSpeed = 2000; // Pause at complete word
+            isDeleting = true;
+        } else if (isDeleting && currentText === '') {
+            isDeleting = false;
+            currentIndex = (currentIndex + 1) % words.length;
+            typeSpeed = 500; // Pause before typing next word
+        }
+        
+        setTimeout(typeEffect, typeSpeed);
+    }
+
+    // Start the effect
+    typeEffect();
+
+    // Password Toggle
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    togglePassword.addEventListener('click', function() {
+        // Toggle the type attribute
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        // Toggle the eye icon
+        if (type === 'password') {
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');
+        } else {
+            eyeIcon.classList.remove('fa-eye');
+            eyeIcon.classList.add('fa-eye-slash');
+        }
+    });
+
+    const input = document.getElementById('courseSearch');
+    const resultsBox = document.getElementById('searchResults');
+    let controller;
+
+    input.addEventListener('input', async () => {
+        const query = input.value.trim();
+
+        if (query.length < 2) {
+            resultsBox.classList.add('hidden');
+            resultsBox.innerHTML = '';
+            return;
+        }
+
+        // cancel previous request
+        if (controller) controller.abort();
+        controller = new AbortController();
+
+        try {
+            const res = await fetch(`/search/courses?q=${encodeURIComponent(query)}`, {
+                signal: controller.signal
+            });
+
+            const data = await res.json();
+
+            if (!data.length) {
+                resultsBox.innerHTML = `
+                    <div class="px-4 py-3 text-sm text-gray-500">
+                        No results found
+                    </div>`;
+            } else {
+                resultsBox.innerHTML = data.map(course => `
+                    <a href="/courses/${course.id}"
+                    class="block px-4 py-3 hover:bg-gray-100 transition text-sm">
+                        ${course.title}
+                    </a>
+                `).join('');
+            }
+
+            resultsBox.classList.remove('hidden');
+        } catch (e) {
+            // request aborted, do nothing
+        }
+    });
+
+    // Hide when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#courseSearch')) {
+            resultsBox.classList.add('hidden');
+        }
+    });
+
+
+</script>
 </html>
