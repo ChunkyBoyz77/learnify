@@ -163,12 +163,7 @@ Route::middleware(['auth', 'https.payments'])->group(function () {
     Route::resource('feedbacks', FeedbackController::class);
 });
 
-//Guest Course Search
-Route::get('/courses', [CourseSearchController::class, 'index'])
-     ->name('courses.index');
 
-Route::get('/courses', [CourseController::class, 'guestSearch'])
-    ->name('courses.index');
 
 
 

@@ -19,7 +19,7 @@ class CourseController extends Controller
      * ========================= */
     public function index(Request $request)
     {
-        $search = $request->input('search');
+        $search = $request->input('search') ?? $request->input('q');;
 
         $courses = Course::query()
             ->where('is_archived', false)   // ✅ Only show active courses
@@ -28,6 +28,10 @@ class CourseController extends Controller
             })
             ->latest()
             ->paginate(12);
+
+        if (auth()->guest()) {
+        return view('courses.guestpreview', compact('courses'));
+        }
 
         return view('courses.index', compact('courses'));
     }
