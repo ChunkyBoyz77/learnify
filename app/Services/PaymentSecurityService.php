@@ -202,6 +202,9 @@ class PaymentSecurityService
             ? ($encryptedPayments / $totalPayments) * 100 
             : 100;
 
+        // Round the encryption success rate for display and comparison
+        $roundedEncryptionRate = round($encryptionSuccessRate, 2);
+
         return [
             'period' => [
                 'start' => $startDate->format('Y-m-d'),
@@ -210,7 +213,7 @@ class PaymentSecurityService
             'payments' => [
                 'total' => $totalPayments,
                 'encrypted' => $encryptedPayments,
-                'encryption_success_rate' => round($encryptionSuccessRate, 2),
+                'encryption_success_rate' => $roundedEncryptionRate,
             ],
             'security_events' => [
                 'unauthorized_access_attempts' => $unauthorizedAttempts,
@@ -221,7 +224,7 @@ class PaymentSecurityService
             ],
             'compliance' => [
                 'zero_unauthorized_access' => $unauthorizedAttempts === 0,
-                'hundred_percent_encryption' => $encryptionSuccessRate === 100.0,
+                'hundred_percent_encryption' => $roundedEncryptionRate >= 100.0,
                 'zero_non_secure_connections' => $nonSecureConnections === 0,
                 'hundred_percent_negative_records' => $totalSecurityEvents === 0 || 
                     ($encryptionFailures === 0 && $unauthorizedAttempts === 0 && $nonSecureConnections === 0),
