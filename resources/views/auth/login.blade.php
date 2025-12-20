@@ -31,19 +31,19 @@
                     src="{{ asset('images/learning-illustration.png') }}?v={{ time() }}" 
                     alt="Online Learning Illustration" 
                     class="w-full h-auto object-contain"
-                    style="max-height: 70vh;"
+                    style="max-height: 60vh;"
                 >
 
             </div>
         </div>
 
         <!-- Right Side - Login Form (40% width on desktop, full width on mobile) -->
-        <div class="w-full lg:w-[40%] flex items-center justify-center p-6 sm:p-8 lg:p-12 lg:pr-60 bg-white order-1 lg:order-2 overflow-y-auto">
-            <div class="w-full max-w-md">
+        <div class="w-full lg:w-1/2 flex items-start lg:items-center justify-center pt-10 lg:pt-0 p-6 sm:p-8 lg:p-12 bg-white order-1 lg:order-2 overflow-y-auto">
+            <div class="w-full max-w-md lg:max-w-lg xl:max-w-xl">
                 <!-- Session Status -->
                 <x-auth-session-status class="mb-4" :status="session('status')" />
 
-                <h1 class="text-5xl font-bold text-gray-900 mb-6 sm:mb-8">Log in to continue your learning <br><span id="rotating-word">journey</span>.</h1>
+                <h1 class="text-4xl xl:text-5xl font-bold leading-tight text-gray-900 mb-6 sm:mb-8">Log in to continue your learning <span id="rotating-word">journey</span>.</h1>
 
                 <form method="POST" action="{{ route('login') }}" class="space-y-5">
                     @csrf
@@ -99,13 +99,44 @@
                         </label>
                     </div>
 
-                    <!-- Log In Button -->
+                    @php
+                        $lockoutSeconds = session('lockout_seconds');
+                    @endphp
+                    
                     <button 
                         type="submit"
-                        class="w-full mt-4 bg-white border border-gray-500 hover:bg-blue-600 text-black hover:text-white font-medium py-3 px-4 rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        id="loginButton"
+                        class="w-full mt-4 border font-medium py-3 px-4 rounded-lg shadow-sm transition
+                            bg-white hover:bg-blue-600 text-black hover:text-white border-gray-500
+                            flex items-center justify-center gap-2"
                     >
-                        Log In
+                        <svg id="loginSpinner"
+                            class="hidden h-5 w-5 animate-spin text-current"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24">
+                            <circle class="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    stroke-width="4"></circle>
+                            <path class="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+
+                        <span id="loginText">Log In</span>
                     </button>
+
+                    @if($lockoutSeconds)
+                        <p id="lockoutMessage" class="mt-3 text-sm text-red-600 text-center">
+                            Too many failed attempts. Please wait
+                            <span id="countdown">{{ $lockoutSeconds }}</span>
+                            seconds.
+                        </p>
+                    @endif
+
 
                     <!-- Forgot Password Link -->
                     @if (Route::has('password.request'))
@@ -240,6 +271,86 @@
         }
     });
 
-
 </script>
+<script>
+    const loginForm = document.querySelector('form');
+    const loginButn = document.getElementById('loginButton');
+    const loginSpinner = document.getElementById('loginSpinner');
+    const loginText = document.getElementById('loginText');
+
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault(); //stop immediate submit
+
+        // Disable button
+        loginButn.disabled = true;
+        loginButn.setAttribute('disabled', 'disabled');
+
+        // Show spinner
+        loginSpinner.classList.remove('hidden');
+        loginText.textContent = 'Signing in...';
+        loginButn.classList.add('cursor-not-allowed', 'opacity-80');
+
+        // Allow browser to paint, then submit
+        requestAnimationFrame(() => {
+            loginForm.submit();
+        });
+    });
+</script>
+
+
+@if(session('lockout_seconds'))
+<script>
+    let secondsLeft = {{ session('lockout_seconds') }};
+    const countdownEl = document.getElementById('countdown');
+    const loginBtn = document.getElementById('loginButton');
+    const lockoutMsg = document.getElementById('lockoutMessage');
+
+    // LOCK immediately
+    loginBtn.disabled = true;
+    loginBtn.setAttribute('disabled', 'disabled');
+
+    if (secondsLeft <= 0) {
+        unlock();
+    } else {
+        const timer = setInterval(() => {
+            secondsLeft--;
+
+            if (secondsLeft <= 0) {
+                clearInterval(timer);
+                unlock();
+                return;
+            }
+
+            countdownEl.textContent = secondsLeft;
+        }, 1000);
+    }
+
+    function unlock() {
+        // UNLOCK properly
+        loginBtn.disabled = false;
+        loginBtn.removeAttribute('disabled');
+
+        loginBtn.classList.remove(
+        'bg-gray-300',
+        'text-gray-500',
+        'cursor-not-allowed'
+        );
+
+        loginBtn.classList.add(
+            'bg-white',
+            'hover:bg-blue-600',
+            'text-black',
+            'hover:text-white',
+            'border-gray-500'
+        );
+
+
+        lockoutMsg.classList.add('hidden');
+    }
+</script>
+@endif
+
+
+
+
 </html>

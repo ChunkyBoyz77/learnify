@@ -31,18 +31,18 @@
                     src="{{ asset('images/learning-illustration.png') }}?v={{ time() }}" 
                     alt="Online Learning Illustration" 
                     class="w-full h-auto object-contain"
-                    style="max-height: 70vh;"
+                    style="max-height: 60vh;"
                 >
 
             </div>
         </div>
 
         <!-- RIGHT: Register Form -->
-        <div class="w-full lg:w-[40%] flex items-center justify-center
-                    p-6 sm:p-8 lg:pl-12 lg:pr-60 bg-white
+        <div class="w-full lg:w-1/2 flex items-center justify-center
+                    p-6 sm:p-8 lg:pl-12 bg-white
                     order-1 lg:order-2">
 
-            <div class="w-full">
+            <div class="w-full max-w-md lg:max-w-lg xl:max-w-xl max-h-[calc(100vh-120px)] overflow-y-auto">
 
                 <h1 class="text-4xl font-bold text-gray-900 mb-8 text-center">
                     Get started with Learnify.
@@ -60,23 +60,32 @@
                             placeholder="Full Name"
                             required
                             class="w-full px-4 py-4 border border-gray-300 rounded-xl
-                                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
                         >
                         <x-input-error :messages="$errors->get('name')" class="mt-2"/>
                     </div>
 
                     <!-- Email -->
-                    <div>
+                    <div id="emailContainer">
                         <input
+                            id="email"
                             type="email"
                             name="email"
                             value="{{ old('email') }}"
                             placeholder="Email"
                             required
-                            class="w-full px-4 py-4 border border-gray-300 rounded-xl
-                                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="peer w-full px-4 py-4 border border-gray-300 rounded-xl
+                                    focus:outline-none focus:ring-2
+                                    focus:ring-blue-500
+                                    focus:border-transparent
+                                    focus:ring-inset"
+                                    
                         >
                         <x-input-error :messages="$errors->get('email')" class="mt-2"/>
+                        <p id="emailError" class="mt-2 text-sm text-red-500 hidden">
+                            Please enter a valid email address.
+                        </p>
+
                     </div>
 
                     <!-- Password -->
@@ -88,7 +97,8 @@
                             required 
                             autocomplete="new-password"
                             placeholder="Password"
-                            class="w-full px-4 py-4 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-400 text-base"
+                            class="w-full px-4 py-4 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 
+                            focus:ring-blue-500 focus:border-transparent focus:ring-inset bg-white text-gray-900 placeholder-gray-400 text-base"
                         />
                         <button 
                             type="button"
@@ -136,7 +146,8 @@
                             placeholder="Confirm Password"
                             required
                             autocomplete="new-password"
-                            class="w-full px-4 py-4 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full px-4 py-4 pr-12 border border-gray-300 rounded-xl focus:outline-none 
+                            focus:ring-2 focus:ring-blue-500 focus:ring-inset"
                         >
                         <button 
                             type="button"
@@ -170,11 +181,30 @@
                     <!-- Register Button -->
                     <button
                         type="submit"
+                        id="registerButton"
                         class="w-full mt-6 bg-blue-600 border border-gray-500 hover:bg-white
-                               text-white hover:text-black font-medium py-3 rounded-lg transition"
+                            text-white hover:text-black font-medium py-3 rounded-lg transition
+                            flex items-center justify-center gap-2"
                     >
-                        Continue
+                        <svg id="registerSpinner"
+                            class="hidden h-5 w-5 animate-spin text-current"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24">
+                            <circle class="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    stroke-width="4"></circle>
+                            <path class="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+
+                        <span id="registerText">Continue</span>
                     </button>
+
 
                     <!-- Login Link -->
                     <div class="text-center pt-4">
@@ -240,6 +270,8 @@
     const reqNumber = document.getElementById('req-number');
     const reqSpecial = document.getElementById('req-special');
 
+    let isPasswordFullyValid = false;
+
     function updateRequirement(element, isValid) {
         const icon = element.querySelector('i');
         if (isValid) {
@@ -257,11 +289,19 @@
 
     passwordInput.addEventListener('focus', function() {
         passwordRequirements.classList.remove('hidden');
-        // Add margin to push content down - adjust based on whether showing all fulfilled or list
-        passwordContainer.style.marginBottom = '180px'; // Enough space for requirements list
+        passwordContainer.style.marginBottom = '180px';
+
+        if (isPasswordFullyValid) {
+            allFulfilled.classList.remove('hidden');
+            passwordContainer.style.marginBottom = '70px';
+        } else {
+            passwordContainer.style.marginBottom = '180px';
+        }
     });
 
     passwordInput.addEventListener('blur', function() {
+        passwordRequirements.classList.add('hidden');
+        passwordContainer.style.marginBottom = '0px'; 
         // Optional: Keep requirements visible or hide them
         // setTimeout(() => {
         //     passwordRequirements.classList.add('hidden');
@@ -287,9 +327,9 @@
         updateRequirement(reqSpecial, hasSpecial);
 
         // Check if all requirements are fulfilled
-        const allValid = hasLength && hasUppercase && hasLowercase && hasNumber && hasSpecial;
+        isPasswordFullyValid = hasLength && hasUppercase && hasLowercase && hasNumber && hasSpecial;
 
-        if (allValid) {
+        if (isPasswordFullyValid) {
             // Show "All requirements fulfilled" message
             allFulfilled.classList.remove('hidden');
             requirementsList.classList.add('hidden');
@@ -363,5 +403,66 @@
             return false;
         }
     });
+
+    // Email Requirement Validation
+    const emailInput = document.getElementById('email');
+    const emailContainer = document.getElementById('emailContainer');
+    const emailError = document.getElementById('emailError');
+
+    function isEmailValid(value) {
+        return value.includes('@') && value.includes('.com');
+    }
+
+    function updateEmailContainer(isValid) {
+
+        if (isValid) {
+            emailInput.classList.remove('focus:ring-red-500');
+            emailInput.classList.add('focus:ring-green-500');
+        } else {
+            emailInput.classList.remove('focus:ring-blue-500');
+            emailInput.classList.add('focus:ring-red-500');
+        }
+    }
+
+    // Focus: show error ONLY if invalid
+    emailInput.addEventListener('focus', () => {
+        if (!isEmailValid(emailInput.value) && emailInput.value !== '') {
+            emailError.classList.remove('hidden');
+            updateEmailContainer(false);
+        }
+    });
+
+    // Blur: hide error & reset ring if empty
+    emailInput.addEventListener('blur', () => {
+        emailError.classList.add('hidden');
+
+        if (emailInput.value === '') {
+            emailInput.classList.remove('ring-red-500', 'ring-green-500');
+            emailInput.classList.add('ring-gray-300');
+        }
+    });
+
+    // Realtime validation
+    emailInput.addEventListener('input', () => {
+        const valid = isEmailValid(emailInput.value);
+
+        if (emailInput.value === '') {
+            emailError.classList.add('hidden');
+            emailInput.classList.remove('ring-red-500', 'ring-green-500');
+            emailInput.classList.add('ring-gray-300');
+            return;
+        }
+
+        updateEmailContainer(valid);
+
+        if (!valid && document.activeElement === emailInput) {
+            emailError.classList.remove('hidden');
+        } else {
+            emailError.classList.add('hidden');
+        }
+    });
+
+
+
 </script>
 </html>

@@ -73,6 +73,7 @@
                         placeholder="Email address"
                         class="w-full px-4 py-4 border border-gray-300 rounded-xl
                                focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        readonly
                     >
                     <x-input-error :messages="$errors->get('email')" class="mt-2"/>
                 </div>
@@ -97,6 +98,7 @@
                         <i id="eyeIcon" class="fa-solid fa-eye"></i>
                     </button>
                     <x-input-error :messages="$errors->get('password')" class="mt-2"/>
+                
 
                     {{-- Password Requirements --}}
                     <div id="passwordRequirements" class="absolute left-0 right-0 mt-2 space-y-1 text-sm hidden z-10">
@@ -108,11 +110,11 @@
                         </div>
 
                         <div id="requirementsList" class="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-1">
-                            <p id="req-length"><i class="fa-solid fa-circle-xmark"></i> At least 8 characters</p>
-                            <p id="req-uppercase"><i class="fa-solid fa-circle-xmark"></i> One uppercase letter</p>
-                            <p id="req-lowercase"><i class="fa-solid fa-circle-xmark"></i> One lowercase letter</p>
-                            <p id="req-number"><i class="fa-solid fa-circle-xmark"></i> One number</p>
-                            <p id="req-special"><i class="fa-solid fa-circle-xmark"></i> One special character (!@#$%^&*)</p>
+                            <p id="req-length"><i class="fa-solid fa-circle-xmark text-red-500"></i> At least 8 characters</p>
+                            <p id="req-uppercase"><i class="fa-solid fa-circle-xmark text-red-500"></i> One uppercase letter</p>
+                            <p id="req-lowercase"><i class="fa-solid fa-circle-xmark text-red-500"></i> One lowercase letter</p>
+                            <p id="req-number"><i class="fa-solid fa-circle-xmark text-red-500"></i> One number</p>
+                            <p id="req-special"><i class="fa-solid fa-circle-xmark text-red-500"></i> One special character (!@#$%^&*)</p>
                         </div>
                     </div>
                 </div>
@@ -161,8 +163,43 @@
 
 {{-- PASSWORD LOGIC (IDENTICAL TO REGISTER PAGE) --}}
 <script>
-const passwordInput = document.getElementById('password');
-const passwordConfirmInput = document.getElementById('password_confirmation');
+// Password Toggle for Main Password
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        if (type === 'password') {
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');
+        } else {
+            eyeIcon.classList.remove('fa-eye');
+            eyeIcon.classList.add('fa-eye-slash');
+        }
+    });
+
+    // Password Toggle for Confirm Password
+    const togglePasswordConfirm = document.getElementById('togglePasswordConfirm');
+    const passwordConfirmInput = document.getElementById('password_confirmation');
+    const eyeIconConfirm = document.getElementById('eyeIconConfirm');
+
+    togglePasswordConfirm.addEventListener('click', function() {
+        const type = passwordConfirmInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordConfirmInput.setAttribute('type', type);
+        
+        if (type === 'password') {
+            eyeIconConfirm.classList.remove('fa-eye-slash');
+            eyeIconConfirm.classList.add('fa-eye');
+        } else {
+            eyeIconConfirm.classList.remove('fa-eye');
+            eyeIconConfirm.classList.add('fa-eye-slash');
+        }
+    });
+
+
 const passwordRequirements = document.getElementById('passwordRequirements');
 const passwordContainer = document.getElementById('passwordContainer');
 
@@ -174,6 +211,9 @@ const reqSpecial = document.getElementById('req-special');
 const allFulfilled = document.getElementById('allFulfilled');
 const requirementsList = document.getElementById('requirementsList');
 
+let isPasswordFullyValid = false;
+
+
 function updateReq(el, valid) {
     el.className = valid ? 'text-green-600' : 'text-gray-500';
     el.querySelector('i').className = valid
@@ -184,6 +224,18 @@ function updateReq(el, valid) {
 passwordInput.addEventListener('focus', () => {
     passwordRequirements.classList.remove('hidden');
     passwordContainer.style.marginBottom = '180px';
+
+    if (isPasswordFullyValid) {
+        allFulfilled.classList.remove('hidden');
+        passwordContainer.style.marginBottom = '70px';
+    } else {
+        passwordContainer.style.marginBottom = '180px';
+    }
+});
+
+passwordInput.addEventListener('blur', () => {
+    passwordRequirements.classList.add('hidden');
+    passwordContainer.style.marginBottom = '0px';
 });
 
 passwordInput.addEventListener('input', () => {
@@ -202,10 +254,10 @@ passwordInput.addEventListener('input', () => {
     updateReq(reqNumber, checks.number);
     updateReq(reqSpecial, checks.special);
 
-    const allValid = Object.values(checks).every(Boolean);
-    allFulfilled.classList.toggle('hidden', !allValid);
-    requirementsList.classList.toggle('hidden', allValid);
-    passwordContainer.style.marginBottom = allValid ? '70px' : '180px';
+    isPasswordFullyValid = Object.values(checks).every(Boolean); 
+    allFulfilled.classList.toggle('hidden', !isPasswordFullyValid);
+    requirementsList.classList.toggle('hidden', isPasswordFullyValid);
+    passwordContainer.style.marginBottom = isPasswordFullyValid ? '70px' : '180px';
 
     checkMatch();
 });
@@ -224,7 +276,7 @@ function checkMatch() {
         ? 'bg-green-50 border border-green-200 text-green-700 p-3 rounded-lg'
         : 'bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg';
     matchStatus.innerHTML = match
-        ? '<i class="fa-solid fa-circle-check"></i> Passwords match'
+        ? '<i class="fa-solid fa-circle-check text-green-500"></i> Passwords match'
         : '<i class="fa-solid fa-circle-xmark"></i> Passwords do not match';
 }
 

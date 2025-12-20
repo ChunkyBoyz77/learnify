@@ -3,7 +3,12 @@
 
         <!-- LEFT: Logo + Explore + Search -->
         <div class="flex items-center gap-6 flex-1">
-            <x-application-logo class="h-20 w-auto shrink-0" />
+            
+             <a href="{{ route('login') }}"
+               class="text-base text-gray-500 font-medium hover:text-cyan-900 transition">
+                <x-application-logo class="h-20 w-auto shrink-0" />
+            </a>
+
 
             <a href="{{ route('courses.index') }}"
                class="text-base text-gray-500 font-medium hover:text-cyan-900 transition">
@@ -40,7 +45,7 @@
 
         <!-- RIGHT -->
         <div class="flex items-center gap-2 ml-auto shrink-0">
-            <a href="#"
+            <a href="{{ route('register') }}"
                class="text-base text-gray-500 font-medium hover:text-blue-900 transition mr-10">
                 Teach on Learnify
             </a>

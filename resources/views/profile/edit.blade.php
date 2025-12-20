@@ -1,4 +1,9 @@
 <x-app-layout>
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+/>
+
 @if(session('success'))
 <div
     x-data="{
@@ -152,6 +157,124 @@
                 </div>
             </form>
 
+            <!-- CHANGE PASSWORD -->
+            <form method="POST"
+                action="{{ route('password.update') }}"
+                class="bg-white rounded-2xl shadow p-6 space-y-6"
+                id="passwordForm">
+                @csrf
+                @method('PUT')
+
+                <h3 class="text-lg font-semibold">Change Password</h3>
+
+                <!-- Current Password -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">Current Password</label>
+                    <div class="relative">
+                    <input type="password"
+                        id="passwordCurrent"
+                        name="current_password"
+                        required
+                        class="w-full rounded-lg border-gray-300">
+                    <button
+                        type="button"
+                        id="toggleCurrentPassword"
+                        class="absolute right-4 top-2 text-gray-500 hover:text-gray-700 transition"
+                    >
+                        <i id="eyeCurrent" class="fa-solid fa-eye"></i>
+                    </button>
+                    </div>
+                    <x-input-error :messages="$errors->updatePassword->get('current_password')" class="mt-2"/>
+                </div>
+
+                <!-- New Password -->
+                <div id="passwordContainer">
+                    <label class="block text-sm font-medium mb-1">New Password</label>
+                    <div class="relative">
+                    <input type="password"
+                        id="passwordInput"
+                        name="password"
+                        required
+                        class="w-full rounded-lg border-gray-300">
+                    
+                        <button
+                        type="button"
+                        id="togglePassword"
+                        class="absolute right-4 top-2 text-gray-500 hover:text-gray-700 transition"
+                    >
+                        <i id="eyeIcon" class="fa-solid fa-eye"></i>
+                    </button>
+                    </div>
+                    <x-input-error :messages="$errors->get('password')" class="mt-2"/>
+                    
+
+                    <!-- Password Requirements -->
+                    <div id="passwordRequirements" class="mt-3 hidden">
+                        <ul id="requirementsList" class="space-y-1 text-sm">
+                            <li id="req-length" class="text-gray-500">
+                                <i class="fa-solid fa-circle-xmark text-red-500 mr-2"></i> At least 8 characters
+                            </li>
+                            <li id="req-uppercase" class="text-gray-500">
+                                <i class="fa-solid fa-circle-xmark text-red-500 mr-2"></i> One uppercase letter
+                            </li>
+                            <li id="req-lowercase" class="text-gray-500">
+                                <i class="fa-solid fa-circle-xmark text-red-500 mr-2"></i> One lowercase letter
+                            </li>
+                            <li id="req-number" class="text-gray-500">
+                                <i class="fa-solid fa-circle-xmark text-red-500 mr-2"></i> One number
+                            </li>
+                            <li id="req-special" class="text-gray-500">
+                                <i class="fa-solid fa-circle-xmark text-red-500 mr-2"></i> One special character
+                            </li>
+                        </ul>
+
+                        <div id="allFulfilled"
+                            class="hidden text-green-600 text-sm font-medium mt-2">
+                            <i class="fa-solid fa-circle-check mr-2"></i>Password meets all requirements
+                        </div>
+                    </div>
+
+                    <x-input-error :messages="$errors->updatePassword->get('password')" class="mt-2"/>
+                </div>
+
+                <!-- Confirm Password -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">Confirm New Password</label>
+                    <div class="relative">
+                    <input type="password"
+                        id="confirmPasswordInput"
+                        name="password_confirmation"
+                        required
+                        class="w-full rounded-lg border-gray-300">
+                    <button
+                        type="button"
+                        id="togglePasswordConfirm"
+                        class="absolute right-4 top-2 text-gray-500 hover:text-gray-700 transition"
+                    >
+                        <i id="eyeIconConfirm" class="fa-solid fa-eye"></i>
+                    </button>
+                    </div>
+
+                    <p id="passwordMismatch"
+                    class="hidden text-sm text-red-600 mt-1">
+                        Passwords do not match
+                    </p>
+                </div>
+
+                <!-- Submit -->
+                <div class="flex justify-end">
+                    <button id="passwordSubmit"
+                            type="submit"
+                            disabled
+                            class="px-5 py-2 bg-blue-600 text-white rounded-lg
+                                opacity-50 cursor-not-allowed">
+                        Update Password
+                    </button>
+                </div>
+            </form>
+
+
+
             <!-- ACCOUNT DELETION -->
             <div class="bg-white rounded-2xl shadow p-6 border border-red-200">
                 <h3 class="text-lg font-semibold text-red-600 mb-2">
@@ -190,4 +313,138 @@
 
         </div>
     </div>
+
+<script>
+    
+     // Password Toggle for Main Password
+    const toggleCurrentPassword = document.getElementById('toggleCurrentPassword');
+    const passwordCurrent = document.getElementById('passwordCurrent');
+    const eyeCurrent = document.getElementById('eyeCurrent');
+
+    toggleCurrentPassword.addEventListener('click', function() {
+        const type = passwordCurrent.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordCurrent.setAttribute('type', type);
+        
+        if (type === 'password') {
+            eyeCurrent.classList.remove('fa-eye-slash');
+            eyeCurrent.classList.add('fa-eye');
+        } else {
+            eyeCurrent.classList.remove('fa-eye');
+            eyeCurrent.classList.add('fa-eye-slash');
+        }
+    });
+    
+    // Password Toggle for Main Password
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('passwordInput');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        if (type === 'password') {
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');
+        } else {
+            eyeIcon.classList.remove('fa-eye');
+            eyeIcon.classList.add('fa-eye-slash');
+        }
+    });
+
+    // Password Toggle for Confirm Password
+    const togglePasswordConfirm = document.getElementById('togglePasswordConfirm');
+    const passwordConfirmInput = document.getElementById('confirmPasswordInput');
+    const eyeIconConfirm = document.getElementById('eyeIconConfirm');
+
+    togglePasswordConfirm.addEventListener('click', function() {
+        const type = passwordConfirmInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordConfirmInput.setAttribute('type', type);
+        
+        if (type === 'password') {
+            eyeIconConfirm.classList.remove('fa-eye-slash');
+            eyeIconConfirm.classList.add('fa-eye');
+        } else {
+            eyeIconConfirm.classList.remove('fa-eye');
+            eyeIconConfirm.classList.add('fa-eye-slash');
+        }
+    });
+
+    const confirmPasswordInput = document.getElementById('confirmPasswordInput');
+    const passwordRequirements = document.getElementById('passwordRequirements');
+    const passwordSubmit = document.getElementById('passwordSubmit');
+
+    const reqLength = document.getElementById('req-length');
+    const reqUppercase = document.getElementById('req-uppercase');
+    const reqLowercase = document.getElementById('req-lowercase');
+    const reqNumber = document.getElementById('req-number');
+    const reqSpecial = document.getElementById('req-special');
+    const allFulfilled = document.getElementById('allFulfilled');
+    const requirementsList = document.getElementById('requirementsList');
+    const passwordMismatch = document.getElementById('passwordMismatch');
+
+    let isPasswordValid = false;
+    let isMatch = false;
+
+    function updateReq(el, valid) {
+        el.className = valid ? 'text-green-600' : 'text-gray-500';
+        el.querySelector('i').className = valid
+            ? 'fa-solid fa-circle-check text-green-500'
+            : 'fa-solid fa-circle-xmark text-red-500';
+    }
+
+    function validatePassword() {
+        const v = passwordInput.value;
+
+        const checks = {
+            length: v.length >= 8,
+            upper: /[A-Z]/.test(v),
+            lower: /[a-z]/.test(v),
+            number: /\d/.test(v),
+            special: /[!@#$%^&*]/.test(v)
+        };
+
+        updateReq(reqLength, checks.length);
+        updateReq(reqUppercase, checks.upper);
+        updateReq(reqLowercase, checks.lower);
+        updateReq(reqNumber, checks.number);
+        updateReq(reqSpecial, checks.special);
+
+        isPasswordValid = Object.values(checks).every(Boolean);
+
+        allFulfilled.classList.toggle('hidden', !isPasswordValid);
+        requirementsList.classList.toggle('hidden', isPasswordValid);
+
+        validateMatch();
+    }
+
+    function validateMatch() {
+        isMatch =
+            passwordInput.value &&
+            confirmPasswordInput.value &&
+            passwordInput.value === confirmPasswordInput.value;
+
+        passwordMismatch.classList.toggle('hidden', isMatch || !confirmPasswordInput.value);
+        updateSubmit();
+    }
+
+    function updateSubmit() {
+        const canSubmit = isPasswordValid && isMatch;
+        passwordSubmit.disabled = !canSubmit;
+        passwordSubmit.classList.toggle('opacity-50', !canSubmit);
+        passwordSubmit.classList.toggle('cursor-not-allowed', !canSubmit);
+    }
+
+    passwordInput.addEventListener('focus', () => {
+        passwordRequirements.classList.remove('hidden');
+    });
+
+    passwordInput.addEventListener('blur', () => {
+        passwordRequirements.classList.add('hidden');
+    });
+
+    passwordInput.addEventListener('input', validatePassword);
+    confirmPasswordInput.addEventListener('input', validateMatch);
+</script>
+
 </x-app-layout>

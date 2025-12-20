@@ -35,12 +35,12 @@
         <img
             src="{{ asset('images/learning-illustration.png') }}"
             class="w-full max-w-3xl object-contain"
-            style="max-height: 70vh;"
+            style="max-height: 60vh;"
         >
     </div>
 
     {{-- RIGHT --}}
-    <div class="w-full lg:w-[40%] flex items-center justify-center p-12 lg:pr-60">
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-12">
         <div class="w-full max-w-md">
 
             {{-- SUCCESS STATE --}}
