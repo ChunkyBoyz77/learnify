@@ -20,6 +20,92 @@
     {{-- HEADER --}}
     @include('layouts.auth-header')
 
+@if(session('account_deleted'))
+<div
+    x-data="{
+        show: true,
+        timer: null,
+        start() { this.timer = setTimeout(() => this.show = false, 5000); },
+        pause() { clearTimeout(this.timer); }
+    }"
+    x-init="start()"
+    x-show="show"
+    x-transition.duration.500ms
+    class="fixed inset-0 z-50 flex items-start justify-center px-4 py-6 pointer-events-none"
+>
+    <div
+        @mouseenter="pause()"
+        @mouseleave="start()"
+        @click="show = false"
+        class="pointer-events-auto w-full max-w-4xl bg-red-600 text-white rounded-lg shadow-2xl overflow-hidden"
+    >
+        <!-- Banner content -->
+        <div class="flex flex-col md:flex-row items-center gap-4 p-6">
+            <!-- Icon -->
+            <div class="flex-shrink-0">
+                <svg class="w-12 h-12 text-white animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+
+            <!-- Text -->
+            <div class="flex-1 text-center md:text-left">
+                <h2 class="text-2xl font-bold">Account Deleted</h2>
+                <p class="mt-1 text-lg">{{ session('grand_banner') }}</p>
+            </div>
+
+            <!-- Close button -->
+            <div class="flex-shrink-0">
+                <button class="text-white hover:text-gray-200 text-2xl font-bold" @click="show = false">&times;</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
+
+@if(session('logout_success'))
+<div
+    x-data="{
+        show: true,
+        timer: null,
+        start() {
+            this.timer = setTimeout(() => this.show = false, 2000);
+        },
+        pause() {
+            clearTimeout(this.timer);
+        }
+    }"
+    x-init="start()"
+    x-show="show"
+    x-transition.opacity.duration.300ms
+    class="fixed top-6 left-1/2 -translate-x-1/2 z-50"
+>
+    <div
+        @mouseenter="pause()"
+        @mouseleave="start()"
+        @click="show = false"
+        class="flex items-center gap-3
+               bg-green-600 text-white
+               px-6 py-3 rounded-lg shadow-lg
+               cursor-pointer select-none"
+    >
+        <!-- Check icon -->
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M5 13l4 4L19 7"/>
+        </svg>
+
+        <span class="font-medium">
+            {{ session('logout_success') }}
+        </span>
+    </div>
+</div>
+@endif
+
+
+
+
 
 
     <!-- Main Content -->
@@ -308,6 +394,18 @@
     // LOCK immediately
     loginBtn.disabled = true;
     loginBtn.setAttribute('disabled', 'disabled');
+
+    loginBtn.classList.add(
+        'bg-gray-300',
+        'text-gray-500',
+        'cursor-not-allowed',
+        'opacity-50'
+    );
+
+    loginBtn.classList.remove(
+        'hover:bg-blue-600',
+        'hover:text-white',
+    );
 
     if (secondsLeft <= 0) {
         unlock();

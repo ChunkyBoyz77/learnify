@@ -434,7 +434,10 @@
 
     // Blur: hide error & reset ring if empty
     emailInput.addEventListener('blur', () => {
-        emailError.classList.add('hidden');
+        if (!isEmailValid(emailInput.value) && emailInput.value !== '') {
+            emailError.classList.remove('hidden');
+            updateEmailContainer(false);
+        }
 
         if (emailInput.value === '') {
             emailInput.classList.remove('ring-red-500', 'ring-green-500');

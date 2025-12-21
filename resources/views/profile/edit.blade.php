@@ -46,6 +46,49 @@
 </div>
 @endif
 
+@if(session('password_success'))
+<div
+    x-data="{
+        show: true,
+        timer: null,
+        start() {
+            this.timer = setTimeout(() => this.show = false, 5000);
+        },
+        pause() {
+            clearTimeout(this.timer);
+        }
+    }"
+    x-init="start()"
+    x-show="show"
+    x-transition.opacity.duration.300ms
+    class="fixed top-20 left-1/2 -translate-x-1/2 z-50"
+>
+    <div
+        @mouseenter="pause()"
+        @mouseleave="start()"
+        @click="show = false"
+        class="flex items-center gap-3
+               bg-green-600 text-white
+               px-6 py-3 rounded-lg shadow-lg
+               cursor-pointer select-none"
+    >
+        <!-- Animated Check Icon -->
+        <svg class="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M5 13l4 4L19 7"/>
+        </svg>
+
+        <span class="font-medium">
+            {{ session('password_success') }}
+        </span>
+
+        <!-- Close hint -->
+        <span class="text-sm opacity-70 ml-2">(click to dismiss)</span>
+    </div>
+</div>
+@endif
+
+
 
 
     <div class="py-10">
@@ -73,7 +116,7 @@
                 <div>
                     <h2 class="text-xl font-bold">{{ Auth::user()->name }}</h2>
                     <p class="text-gray-500">
-                        {{ Auth::user()->role === 'instructor' ? 'Student | Instructor' : 'Student' }}
+                        {{ Auth::user()->role === 'instructor' ? 'Instructor' : 'Student' }}
                     </p>
                     <p class="text-gray-500">{{ Auth::user()->address ?? 'Address not set' }}</p>
                 </div>
@@ -136,7 +179,7 @@
                     <!-- Role -->
                     <div>
                         <label class="block text-sm font-medium mb-1">Role</label>
-                        <input type="text" value="{{ Auth::user()->role }}" disabled
+                        <input type="text" value="{{ Auth::user()->role === 'instructor' ? 'Instructor' : 'Student' }}" disabled
                                class="w-full rounded-lg bg-gray-100 border-gray-300">
                     </div>
 

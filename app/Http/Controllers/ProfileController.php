@@ -53,6 +53,7 @@ class ProfileController extends Controller
         $user->save();
 
         return back()->with('success', 'Profile updated successfully.');
+        
     }
 
 
@@ -74,6 +75,8 @@ class ProfileController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return Redirect::to('/');
+        return redirect('/')
+             ->with('account_deleted', 'Your account has been successfully deleted!');
+
     }
 }
