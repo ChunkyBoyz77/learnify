@@ -288,36 +288,81 @@ class CourseController extends Controller
      * ========================= */
     public function quizTake(Lesson $lesson)
     {
-        if (!Auth::check() || Auth::user()->role !== 'student') abort(403);
+        // 1. Authorization check
+        if (!Auth::check() || Auth::user()->role !== 'student') {
+            abort(403, 'Unauthorized access.');
+        }
 
+        // 2. Fetch the quiz with its questions
         $quiz = $lesson->quiz()->with('questions')->firstOrFail();
 
-        return view('courses.student.quiz-take', compact('lesson','quiz'));
+        return view('courses.student.quiz-take', compact('lesson', 'quiz'));
     }
 
+    /**
+     * Handle quiz submission and check for course completion.
+     */
     public function quizSubmit(Request $request, Lesson $lesson)
     {
-        if (Auth::user()->role !== 'student') abort(403);
+        // 1. Authorization check
+        if (!Auth::check() || Auth::user()->role !== 'student') {
+            abort(403, 'Only students can take quizzes.');
+        }
 
+        $user = Auth::user();
         $quiz = $lesson->quiz()->with('questions')->firstOrFail();
         $questions = $quiz->questions;
 
         $answers = $request->answers;
         $score = 0;
 
+        // 2. Calculate Score
         foreach ($questions as $q) {
             if (isset($answers[$q->id]) &&
-                (int)$answers[$q->id] === $q->correct_option_index) {
+                (int)$answers[$q->id] === (int)$q->correct_option_index) {
                 $score++;
             }
         }
 
+        // 3. Save the attempt
         QuizAttempt::create([
-            'user_id' => Auth::id(),
+            'user_id' => $user->id,
             'quiz_id' => $quiz->id,
             'answers' => $answers,
             'score'   => $score,
         ]);
+
+        // 4. Check for Course Completion
+        $course = $lesson->course;
+
+        // Get IDs of all quizzes in this course THAT HAVE AT LEAST ONE QUESTION
+        $courseQuizIds = Quiz::whereHas('lesson', function ($query) use ($course) {
+                $query->where('course_id', $course->id);
+            })
+            ->has('questions') // This ensures only quizzes with questions are counted
+            ->pluck('id');
+
+        $totalQuizzesToComplete = $courseQuizIds->count();
+
+        // Count how many of these specific quizzes the user has attempted
+        $attemptedQuizzesCount = QuizAttempt::where('user_id', $user->id)
+            ->whereIn('quiz_id', $courseQuizIds)
+            ->distinct('quiz_id')
+            ->count();
+
+        // 5. Update Enrollment if all quizzes with questions are attempted
+        if ($totalQuizzesToComplete > 0 && $attemptedQuizzesCount >= $totalQuizzesToComplete) {
+            $enrollment = Enrollment::where('user_id', $user->id)
+                ->where('course_id', $course->id)
+                ->first();
+
+            if ($enrollment && is_null($enrollment->completed_at)) {
+                $enrollment->update([
+                    'completed_at' => now(),
+                    'status' => 'completed'
+                ]);
+            }
+        }
 
         return back()->with('success', "Your score: {$score} / {$questions->count()}");
     }

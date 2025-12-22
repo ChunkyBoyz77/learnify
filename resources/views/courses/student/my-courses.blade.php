@@ -79,7 +79,7 @@
                                 <div class="pt-6 border-t border-gray-100 dark:border-gray-700">
                                     <a href="{{ route('student.course.content', $course->id) }}"
                                        class="flex items-center justify-center w-full bg-teal-600 hover:bg-teal-700 text-white font-black uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all shadow-lg shadow-teal-500/10 active:scale-95">
-                                        Continue Learning
+                                        View Content
                                         <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                                     </a>
                                 </div>

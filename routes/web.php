@@ -109,6 +109,9 @@ Route::middleware(['auth','student'])->group(function () {
 
     Route::get('/student/course/{course}/content', [CourseController::class, 'studentContent'])
         ->name('student.course.content');
+
+    Route::get('/course/{course}/content', [CourseController::class, 'studentContent'])
+        ->name('courses.student.content');
     
     Route::get('/quiz/{lesson}/take', [CourseController::class, 'quizTake'])
         ->name('quiz.take');
