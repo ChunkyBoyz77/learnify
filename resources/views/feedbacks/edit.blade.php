@@ -7,7 +7,7 @@
 
             <a href="{{ route('feedbacks.index') }}"
                class="inline-flex items-center px-5 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all">
-                ← Back to List
+                ← Back
             </a>
         </div>
     </x-slot>
@@ -71,7 +71,7 @@
 
                         <button type="submit"
                                 class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all">
-                            Save Changes
+                            Update
                         </button>
                     </div>
                 </form>

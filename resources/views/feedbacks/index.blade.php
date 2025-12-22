@@ -136,7 +136,7 @@
                                         <form action="{{ route('feedbacks.destroy', $item->id) }}" method="POST">
                                             @csrf @method('DELETE')
                                             <button type="submit"
-                                                    class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-semibold">
+                                                    class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-semibold" onclick="return confirm('Are you sure you want to delete this feedback?');">
                                                 Delete
                                             </button>
                                         </form>
