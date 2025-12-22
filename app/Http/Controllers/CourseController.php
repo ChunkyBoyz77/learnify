@@ -19,7 +19,7 @@ class CourseController extends Controller
      * ========================= */
     public function index(Request $request)
     {
-        $search = $request->input('search');
+        $search = $request->input('search') ?? $request->input('q');;
 
         $courses = Course::query()
             ->where('is_archived', false)   // ✅ Only show active courses
@@ -28,6 +28,10 @@ class CourseController extends Controller
             })
             ->latest()
             ->paginate(12);
+
+        if (auth()->guest()) {
+        return view('courses.guestpreview', compact('courses'));
+        }
 
         return view('courses.index', compact('courses'));
     }
@@ -363,5 +367,23 @@ class CourseController extends Controller
 
         return back()->with('success', 'Quiz question deleted.');
     }
+
+    public function guestSearch(Request $request)
+    {
+        $q = $request->q;
+
+        $courses = Course::with('instructor')
+            ->when($q, fn ($query) =>
+                $query->where('title', 'like', "%{$q}%")
+                    ->orWhere('description', 'like', "%{$q}%")
+            )
+            ->paginate(12);
+
+        return view('courses.guestpreview', compact('courses'));
+    }
+
+
+
+
 
 }
