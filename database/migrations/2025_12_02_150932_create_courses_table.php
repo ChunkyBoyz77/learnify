@@ -17,11 +17,10 @@ return new class extends Migration
             $table->text('what_you_will_learn')->nullable();
             $table->text('skills_gain')->nullable();
             $table->text('assessment_info')->nullable();
-
             $table->string('duration')->nullable();
             $table->decimal('price', 8, 2)->default(0);
             $table->string('level')->nullable();
-
+            $table->string('image')->nullable();
             $table->boolean('is_archived')->default(false);
 
             $table->timestamps();

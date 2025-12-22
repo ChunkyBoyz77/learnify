@@ -9,71 +9,47 @@ use App\Models\Lesson;
 use App\Models\Material;
 use App\Models\Quiz;
 use App\Models\QuizQuestion;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 
 class CourseSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     */
     public function run(): void
     {
         echo "===== LMS FULL SEEDER STARTED =====\n\n";
 
-        // ---------------------------------------------------------
-        // 1. Create demo instructor
-        // ---------------------------------------------------------
-        $instructor = User::firstOrCreate(
-            ['email' => 'instructor@learnify.com'],
+        // 1. Create or Update two demo instructors
+        $instructor1 = User::updateOrCreate(
+            ['email' => 'sarah.miller@learnify.com'],
             [
-                'name' => 'Demo Instructor',
+                'name' => 'Dr. Sarah Miller',
                 'password' => bcrypt('password'),
                 'role' => 'instructor',
             ]
         );
 
-        echo "👨‍🏫 Instructor: {$instructor->email} (password: password)\n\n";
+        $instructor2 = User::updateOrCreate(
+            ['email' => 'alan.turing@learnify.com'],
+            [
+                'name' => 'Prof. Alan Turing',
+                'password' => bcrypt('password'),
+                'role' => 'instructor',
+            ]
+        );
 
-        // ---------------------------------------------------------
-        // 2. Define demo courses and lessons
-        // ---------------------------------------------------------
+        echo "👨‍🏫 Instructor 1: {$instructor1->email}\n";
+        echo "👨‍🏫 Instructor 2: {$instructor2->email}\n\n";
+
+        // 2. Define new demo courses with high-quality real images
         $courses = [
-
             [
-                'title' => 'Web Development Bootcamp (HTML, CSS & JavaScript)',
-                'description' => 'Beginner-friendly course to learn how to build websites.',
-                'what_you_will_learn' => 'HTML, CSS, JS, DOM',
-                'skills_gain' => 'Front-end basics',
-                'assessment_info' => 'Quizzes + Projects',
-                'duration' => '8 weeks',
-                'price' => 79.90,
-                'level' => 'Beginner',
-                'lessons' => [
-                    'Introduction to Web Development',
-                    'HTML Fundamentals',
-                    'CSS Layout & Styling',
-                    'JavaScript Basics',
-                    'DOM Manipulation',
-                ],
-            ],
-
-            [
-                'title' => 'Java Programming Essentials',
-                'description' => 'Learn core Java & OOP concepts.',
-                'what_you_will_learn' => 'OOP, Classes, File I/O',
-                'skills_gain' => 'Debugging, Logic building',
-                'assessment_info' => 'Quizzes + Final Project',
-                'duration' => '6 weeks',
-                'price' => 89.99,
-                'level' => 'Intermediate',
-                'lessons' => [
-                    'Getting Started With Java',
-                    'Variables & Operators',
-                    'OOP Concepts',
-                    'Inheritance & Polymorphism',
-                    'Java File Handling',
-                ],
-            ],
-
-            [
+                'instructor_id' => $instructor1->id,
                 'title' => 'Cybersecurity Fundamentals',
-                'description' => 'Learn security principles and modern threats.',
+                'description' => 'Learn security principles and modern threats in the digital age.',
+                'image' => 'course_images/cybersecurity_NicoElNino-AlamyStockPhoto.jpg',
                 'what_you_will_learn' => 'Security, Malware, Networks',
                 'skills_gain' => 'Risk analysis, threat detection',
                 'assessment_info' => 'Labs + Hands-on Test',
@@ -88,122 +64,138 @@ class CourseSeeder extends Seeder
                     'Pen Testing Basics',
                 ],
             ],
-
             [
-                'title' => 'Artificial Intelligence & Machine Learning Basics',
-                'description' => 'Learn AI/ML workflow & algorithms.',
-                'what_you_will_learn' => 'Regression, Classification',
-                'skills_gain' => 'Data analysis & model evaluation',
-                'assessment_info' => 'Mini ML projects',
-                'duration' => '7 weeks',
-                'price' => 149.00,
-                'level' => 'Beginner',
-                'lessons' => [
-                    'Intro to AI & ML',
-                    'Data Preparation',
-                    'Linear Regression',
-                    'Classification Models',
-                    'Model Evaluation',
-                ],
-            ],
-
-            [
+                'instructor_id' => $instructor2->id,
                 'title' => 'Mobile App Development with Flutter',
-                'description' => 'Build beautiful cross-platform apps.',
-                'what_you_will_learn' => 'Widgets, State, APIs',
-                'skills_gain' => 'UI development, mobile app design',
+                'description' => 'Build beautiful cross-platform apps using the Flutter framework.',
+                'image' => 'course_images/642e5f92f6147ed845692f97_How-Mobile-App-Testing-Makes-or-Breaks-Mobile-User-Experience.webp',
+                'what_you_will_learn' => 'Widgets, State Management, API Integration',
+                'skills_gain' => 'Cross-platform development, UI design',
                 'assessment_info' => '3 Mini Projects',
                 'duration' => '8 weeks',
                 'price' => 99.90,
                 'level' => 'Intermediate',
                 'lessons' => [
-                    'Intro to Flutter',
-                    'Widgets & Layouts',
-                    'State Management',
-                    'Navigation & Routing',
-                    'API Integration',
+                    'Getting Started with Flutter',
+                    'Building Beautiful UIs',
+                    'Handling User Input',
+                    'State Management Patterns',
+                    'Publishing to App Stores',
                 ],
             ],
-
+            [
+                'instructor_id' => $instructor1->id,
+                'title' => 'AI & Machine Learning Essentials',
+                'description' => 'Deep dive into the world of neural networks and data-driven models.',
+                'image' => 'course_images/How-Machine-Learning-and-Artificial-Intelligence-Will-Impact-Global-Industries-in-2020.png',
+                'what_you_will_learn' => 'Python, Regression, Neural Networks',
+                'skills_gain' => 'Model building, Data cleaning',
+                'assessment_info' => 'Final Capstone Project',
+                'duration' => '10 weeks',
+                'price' => 150.00,
+                'level' => 'Advanced',
+                'lessons' => [
+                    'Introduction to AI',
+                    'Linear & Logistic Regression',
+                    'Decision Trees & Forests',
+                    'Neural Network Basics',
+                    'Deploying AI Models',
+                ],
+            ],
+            [
+                'instructor_id' => $instructor2->id,
+                'title' => 'UI/UX Design for Modern Apps',
+                'description' => 'Master the art of user-centric design and high-fidelity prototyping.',
+                'image' => 'course_images/images.png',
+                'what_you_will_learn' => 'Figma, Wireframing, User Research',
+                'skills_gain' => 'Visual design, Prototyping',
+                'assessment_info' => 'Design Portfolio Review',
+                'duration' => '6 weeks',
+                'price' => 85.00,
+                'level' => 'Beginner',
+                'lessons' => [
+                    'Design Thinking Principles',
+                    'User Research & Personas',
+                    'Wireframing and Sketching',
+                    'Prototyping in Figma',
+                    'Usability Testing',
+                ],
+            ],
         ];
 
-        // ---------------------------------------------------------
-        // 3. Create courses → lessons → materials → quizzes
-        // ---------------------------------------------------------
+        // 3. Process each course and its children
         foreach ($courses as $data) {
+            $course = Course::updateOrCreate(
+                ['title' => $data['title']],
+                [
+                    'instructor_id' => $data['instructor_id'],
+                    'description' => $data['description'],
+                    'image' => $data['image'],
+                    'what_you_will_learn' => $data['what_you_will_learn'],
+                    'skills_gain' => $data['skills_gain'],
+                    'assessment_info' => $data['assessment_info'],
+                    'duration' => $data['duration'],
+                    'price' => $data['price'],
+                    'level' => $data['level'],
+                ]
+            );
 
-            $course = Course::create([
-                'instructor_id' => $instructor->id,
-                'title' => $data['title'],
-                'description' => $data['description'],
-                'what_you_will_learn' => $data['what_you_will_learn'],
-                'skills_gain' => $data['skills_gain'],
-                'assessment_info' => $data['assessment_info'],
-                'duration' => $data['duration'],
-                'price' => $data['price'],
-                'level' => $data['level'],
-            ]);
-
-            echo "📘 Course created: {$course->title}\n";
+            echo "📘 Course Updated/Created: {$course->title}\n";
 
             foreach ($data['lessons'] as $index => $lessonTitle) {
-
-                $lesson = Lesson::create([
-                    'course_id' => $course->id,
-                    'title' => $lessonTitle,
-                    'order_number' => $index + 1,
-                ]);
+                $lesson = Lesson::updateOrCreate(
+                    [
+                        'course_id' => $course->id,
+                        'title' => $lessonTitle
+                    ],
+                    [
+                        'order_number' => $index + 1,
+                    ]
+                );
 
                 echo "   ➤ Lesson: {$lesson->title}\n";
 
-                // ---------------------------------------------------------
-                // Insert demo material
-                // ---------------------------------------------------------
-                Material::create([
-                    'lesson_id' => $lesson->id,
-                    'file_path' => "https://example.com/video{$lesson->id}",
-                    'file_type' => 'video_url',
-                ]);
+                Material::updateOrCreate(
+                    ['lesson_id' => $lesson->id],
+                    [
+                        'file_path' => "https://example.com/video-lesson-{$lesson->id}",
+                        'file_type' => 'video_url',
+                    ]
+                );
 
-                echo "       📎 Material added\n";
+                $quiz = Quiz::updateOrCreate(
+                    ['lesson_id' => $lesson->id],
+                    [
+                        'title' => "Quiz: {$lesson->title}",
+                    ]
+                );
 
-                // ---------------------------------------------------------
-                // Create quiz
-                // ---------------------------------------------------------
-                $quiz = Quiz::create([
-                    'lesson_id' => $lesson->id,
-                    'title' => "Quiz for {$lesson->title}",
-                ]);
+                $questions = [
+                    [
+                        'text' => "What is the primary objective of {$lesson->title}?",
+                        'options' => ['Option A', 'Option B', 'Option C'],
+                        'correct' => 0
+                    ],
+                    [
+                        'text' => "Which tool is commonly used in {$lesson->title}?",
+                        'options' => ['Tool 1', 'Tool 2', 'Tool 3'],
+                        'correct' => 1
+                    ],
+                ];
 
-                echo "       📝 Quiz created\n";
-
-                // ---------------------------------------------------------
-                // Add 3 questions
-                // ---------------------------------------------------------
-                QuizQuestion::create([
-                    'quiz_id' => $quiz->id,
-                    'question_text' => "What is the main concept of {$lesson->title}?",
-                    'options' => ['Concept A', 'Concept B', 'Concept C'],
-                    'correct_option_index' => 0,
-                ]);
-
-                QuizQuestion::create([
-                    'quiz_id' => $quiz->id,
-                    'question_text' => "Why is {$lesson->title} important?",
-                    'options' => ['Reason 1', 'Reason 2', 'Reason 3'],
-                    'correct_option_index' => 1,
-                ]);
-
-                QuizQuestion::create([
-                    'quiz_id' => $quiz->id,
-                    'question_text' => "Which statement is true about {$lesson->title}?",
-                    'options' => ['Statement 1', 'Statement 2', 'Statement 3'],
-                    'correct_option_index' => 2,
-                ]);
-
-                echo "       ❓ 3 Questions added\n";
+                foreach ($questions as $q) {
+                    QuizQuestion::updateOrCreate(
+                        [
+                            'quiz_id' => $quiz->id,
+                            'question_text' => $q['text']
+                        ],
+                        [
+                            'options' => $q['options'],
+                            'correct_option_index' => $q['correct'],
+                        ]
+                    );
+                }
             }
-
             echo "\n";
         }
 

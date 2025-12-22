@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\Lesson;
+use App\Models\Feedback;
 use App\Models\Material;
 use App\Models\Quiz;
 use App\Models\QuizQuestion;
@@ -43,16 +44,20 @@ class CourseController extends Controller
     public function show(Course $course)
     {
         $isEnrolled = false;
-
         if (Auth::check() && Auth::user()->role === 'student') {
             $isEnrolled = Enrollment::where('user_id', Auth::id())
                 ->where('course_id', $course->id)
                 ->exists();
         }
 
-        return view('courses.show', compact('course', 'isEnrolled'));
-    }
+        // Try removing the 'status' and 'feedback_type' filters first to see if data appears
+        $feedbacks = Feedback::with('user')
+            ->where('course_id', $course->id)
+            ->latest()
+            ->get();
 
+        return view('courses.show', compact('course', 'isEnrolled', 'feedbacks'));
+    }
 
     /* =========================
      * 3. Instructor My Courses

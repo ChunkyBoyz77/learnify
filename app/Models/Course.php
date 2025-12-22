@@ -20,6 +20,7 @@ class Course extends Model
         'duration',
         'price',
         'level',
+        'image',
         'is_archived',
         'is_published',
     ];
